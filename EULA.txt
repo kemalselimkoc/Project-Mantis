@@ -1,0 +1,37 @@
+PROJECT MANTIS - END USER NOTICE
+Copyright (c) 2026 kemalselimkoc
+
+Project Mantis is free, open-source utility software distributed under the MIT
+License in LICENSE. Support payments are voluntary and do not purchase a
+service, priority support, performance guarantee, or warranty.
+
+The software deletes files only from its documented cache/temp allowlist.
+Locked or inaccessible items are skipped. Even so, cleanup and optimization
+software can behave differently across Windows installations. Review the scan
+result, keep backups of important work, and close Adobe applications before
+cleaning their caches. The software is provided "as is" without warranties to
+the extent permitted by law. Mandatory consumer rights are not excluded.
+
+Memory optimization trims process working sets; Windows may reload data later.
+Game Mode changes the active Windows power plan and attempts to restore it.
+Ghost Overlay changes ordinary Windows styles only on a user-selected supported
+browser Picture-in-Picture window or media player. It does not inject code into,
+read memory from, hook, automate, or modify games. Compatibility with every
+game or third-party anti-cheat system cannot be guaranteed. Stop using overlays
+if a game's rules prohibit them or the game reports a conflict.
+
+Project Mantis runs locally. It does not upload cleanup data, application lists,
+or usage telemetry. GitHub and Buy Me a Coffee buttons open external websites.
+
+Publisher: kemalselimkoc
+Contact: kemalselimkoc@gmail.com
+Project: https://github.com/kemalselimkoc/Project-Mantis
+Support: https://buymeacoffee.com/kemalselimkoc
+
+TURKCE OZET
+Project Mantis ucretsiz ve acik kaynakli bir Windows yardimci uygulamasidir.
+Temizlik islemleri belgelenmis gecici dosya/cache konumlariyla sinirlidir.
+Onemli dosyalarinizi yedekleyin ve Adobe cache temizliginden once ilgili
+uygulamalari kapatin. Ghost Overlay oyunlara kod enjekte etmez veya oyun
+bellegini okumaz; yine de her oyunun ve anti-cheat sisteminin kurallari farkli
+olabileceginden mutlak uyumluluk garantisi verilmez.
