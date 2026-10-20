@@ -8,7 +8,7 @@
 
 ## Install for regular users
 
-1. Download `Project-Mantis-v1.3.0-win64.zip` from the latest GitHub Release.
+1. Download `Project-Mantis-v1.3.1-win64.zip` from the latest GitHub Release.
 2. Extract the complete ZIP to a folder.
 3. Double-click **Install Project Mantis.bat**.
 4. Mantis creates a desktop shortcut, optionally launches with Windows, and opens automatically.
@@ -33,7 +33,7 @@ GitHub Release before running it.
 
 ## Build from source
 
-Run `install.ps1` from PowerShell. It builds `dist\ProjectMantis-v1.3.0.exe` using the Windows .NET Framework compiler and creates a desktop shortcut. No network download is required.
+Run `install.ps1` from PowerShell. It builds `dist\ProjectMantis-v1.3.1.exe` using the Windows .NET Framework compiler and creates a desktop shortcut. No network download is required.
 
 Closing Mantis asks once whether the close button should exit or minimize to the system tray. The choice can be changed later in Settings. The tray icon can restore or fully exit the app.
 

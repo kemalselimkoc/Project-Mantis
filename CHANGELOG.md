@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.1 — 2026-10-20
+
+- Added a symmetric **Support Left** preset to Audio Balance.
+- Widened the balance dialog so Center, Support Left, Support Right and Apply remain clear and accessible.
+
 ## 1.3.0 — 2026-10-20
 
 - Added a minimal Left / Right Audio Balance tool for stereo-capable Windows outputs.

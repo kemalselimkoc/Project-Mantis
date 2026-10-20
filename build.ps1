@@ -42,10 +42,10 @@ try {
     $writer.Close()
 } finally { $stream.Dispose() }
 
-& $csc /nologo /target:winexe /platform:anycpu /optimize+ /win32icon:"$project\assets\mantis.ico" /out:"$out\ProjectMantis-v1.3.0.exe" @refArgs "$project\App.xaml.cs" "$project\MainWindow.cs"
+& $csc /nologo /target:winexe /platform:anycpu /optimize+ /win32icon:"$project\assets\mantis.ico" /out:"$out\ProjectMantis-v1.3.1.exe" @refArgs "$project\App.xaml.cs" "$project\MainWindow.cs"
 if ($LASTEXITCODE -ne 0) { throw "Build failed with exit code $LASTEXITCODE" }
 
 Copy-Item "$project\README.md" "$out\README.txt" -Force
 New-Item -ItemType Directory -Force -Path "$out\assets" | Out-Null
 if (-not (Test-Path "$out\assets\mantis-logo.png")) { Copy-Item "$project\assets\mantis-logo.png" "$out\assets\mantis-logo.png" }
-Write-Host "Built: $out\ProjectMantis-v1.3.0.exe"
+Write-Host "Built: $out\ProjectMantis-v1.3.1.exe"

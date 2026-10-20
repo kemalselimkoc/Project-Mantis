@@ -166,7 +166,7 @@ namespace ProjectMantis
             StackPanel fs = new StackPanel();
             TextBlock privilege = Label(IsAdmin() ? "●  " + T("admin") : "●  " + T("standard"), 11, FontWeights.SemiBold, IsAdmin() ? Accent : "#E6BA5B");
             fs.Children.Add(privilege);
-            fs.Children.Add(Label("v1.3  •  LOCAL & PRIVATE", 9, FontWeights.Medium, Muted));
+            fs.Children.Add(Label("v1.3.1  •  LOCAL & PRIVATE", 9, FontWeights.Medium, Muted));
             TextBlock powered = Label("Powered by kemalselimkoc", 9, FontWeights.Medium, Accent); powered.Margin = new Thickness(0, 5, 0, 0); fs.Children.Add(powered);
             foot.Child = fs; Grid.SetRow(foot, 3); grid.Children.Add(foot);
             return side;
@@ -379,7 +379,7 @@ namespace ProjectMantis
                 return;
             }
 
-            Window dialog = new Window { Title = language == "tr" ? "Ses Dengesi" : "Audio Balance", Width = 570, Height = 430, WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = this, Background = Brush(Bg), Foreground = Brush(Text), ResizeMode = ResizeMode.NoResize };
+            Window dialog = new Window { Title = language == "tr" ? "Ses Dengesi" : "Audio Balance", Width = 720, Height = 430, WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = this, Background = Brush(Bg), Foreground = Brush(Text), ResizeMode = ResizeMode.NoResize };
             Grid root = new Grid { Margin = new Thickness(24) };
             root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); root.RowDefinitions.Add(new RowDefinition()); root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             StackPanel intro = new StackPanel(); intro.Children.Add(Label(language == "tr" ? "Sol / Sağ Ses Dengesi" : "Left / Right Audio Balance", 24, FontWeights.SemiBold, Text));
@@ -397,6 +397,7 @@ namespace ProjectMantis
             TextBlock warning = Label(language == "tr" ? "İpucu: Sağ kulağı desteklemek için sağı yüksek bırakıp solu kademeli azalt. Ani yüksek sesten kaçın." : "Tip: To support the right ear, keep Right higher and gradually lower Left. Avoid sudden loud output.", 11, FontWeights.Normal, "#E6BA5B"); warning.TextWrapping = TextWrapping.Wrap; warning.Margin = new Thickness(0, 0, 0, 12); footer.Children.Add(warning);
             StackPanel actions = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
             actions.Children.Add(PillButton(language == "tr" ? "Ortala" : "Center", "#243127", delegate { double centered = Math.Min(100, Math.Max(leftSlider.Value, rightSlider.Value)); leftSlider.Value = centered; rightSlider.Value = centered; return Task.FromResult(0); }));
+            actions.Children.Add(PillButton(language == "tr" ? "Solu Destekle" : "Support Left", "#243127", delegate { leftSlider.Value = Math.Max(leftSlider.Value, 90); rightSlider.Value = Math.Max(15, leftSlider.Value * 0.70); return Task.FromResult(0); }));
             actions.Children.Add(PillButton(language == "tr" ? "Sağı Destekle" : "Support Right", "#243127", delegate { rightSlider.Value = Math.Max(rightSlider.Value, 90); leftSlider.Value = Math.Max(15, rightSlider.Value * 0.70); return Task.FromResult(0); }));
             actions.Children.Add(PillButton(language == "tr" ? "Uygula" : "Apply", Accent2, delegate
             {
