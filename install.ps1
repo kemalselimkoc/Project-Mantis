@@ -3,7 +3,7 @@
 $ErrorActionPreference = 'Stop'
 $project = Split-Path -Parent $MyInvocation.MyCommand.Path
 & (Join-Path $project 'build.ps1')
-$exe = Join-Path $project 'dist\ProjectMantis-v1.2.0.exe'
+$exe = Join-Path $project 'dist\ProjectMantis-v1.3.0.exe'
 $desktop = [Environment]::GetFolderPath('Desktop')
 $shell = New-Object -ComObject WScript.Shell
 $shortcut = $shell.CreateShortcut((Join-Path $desktop 'Project Mantis.lnk'))

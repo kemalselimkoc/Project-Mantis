@@ -51,7 +51,7 @@ namespace ProjectMantis
         protected override void OnStartup(StartupEventArgs e)
         {
             bool created;
-            instanceMutex = new Mutex(true, "ProjectMantis.SingleInstance.3", out created);
+            instanceMutex = new Mutex(true, "ProjectMantis.SingleInstance.4", out created);
             Log("OnStartup mutex created=" + created);
             if (!created)
             {

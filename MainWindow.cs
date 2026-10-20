@@ -166,7 +166,7 @@ namespace ProjectMantis
             StackPanel fs = new StackPanel();
             TextBlock privilege = Label(IsAdmin() ? "●  " + T("admin") : "●  " + T("standard"), 11, FontWeights.SemiBold, IsAdmin() ? Accent : "#E6BA5B");
             fs.Children.Add(privilege);
-            fs.Children.Add(Label("v1.2  •  LOCAL & PRIVATE", 9, FontWeights.Medium, Muted));
+            fs.Children.Add(Label("v1.3  •  LOCAL & PRIVATE", 9, FontWeights.Medium, Muted));
             TextBlock powered = Label("Powered by kemalselimkoc", 9, FontWeights.Medium, Accent); powered.Margin = new Thickness(0, 5, 0, 0); fs.Children.Add(powered);
             foot.Child = fs; Grid.SetRow(foot, 3); grid.Children.Add(foot);
             return side;
@@ -269,6 +269,7 @@ namespace ProjectMantis
             tools.Children.Add(ToolTile("☕", language == "tr" ? "Uyanık Tut" : "Keep Awake", language == "tr" ? "Render veya indirme bitene kadar uykuya geçmez." : "Prevents sleep during renders or downloads.", delegate { ToggleAwake(); return Task.FromResult(0); }));
             tools.Children.Add(ToolTile("⌁", language == "tr" ? "DNS Tazele" : "Flush DNS", language == "tr" ? "Bağlantı önbelleğini yeniler." : "Refreshes the connection cache.", async delegate { await FlushDns(); }));
             tools.Children.Add(ToolTile("◫", "Ghost Overlay", language == "tr" ? "Video penceresini üstte ama tıklanamaz tutar." : "Keeps a video window on top but click-through.", delegate { ShowGhostOverlay(); return Task.FromResult(0); }));
+            tools.Children.Add(ToolTile("◖◗", language == "tr" ? "Ses Dengesi" : "Audio Balance", language == "tr" ? "Sol ve sağ kulaklık kanalını ayrı ayarla." : "Adjust left and right headphone channels separately.", delegate { ShowAudioBalance(); return Task.FromResult(0); }));
             Grid.SetRow(tools, 1); page.Children.Add(tools); SetPage(page);
         }
 
@@ -361,6 +362,58 @@ namespace ProjectMantis
                 BitmapImage image = new BitmapImage(); image.BeginInit(); image.CacheOption = BitmapCacheOption.OnLoad; image.UriSource = new Uri(path, UriKind.Absolute); image.EndInit(); image.Freeze(); return image;
             }
             catch { return null; }
+        }
+
+        private void ShowAudioBalance()
+        {
+            float[] levels;
+            try { levels = AudioBalance.GetChannelLevels(); }
+            catch (Exception ex)
+            {
+                MessageBox.Show((language == "tr" ? "Varsayılan ses çıkışı okunamadı. Kulaklığın bağlı ve etkin olduğundan emin ol.\n\n" : "The default audio output could not be read. Make sure your headphones are connected and active.\n\n") + ex.Message, language == "tr" ? "Ses Dengesi" : "Audio Balance", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            if (levels.Length < 2)
+            {
+                MessageBox.Show(language == "tr" ? "Seçili çıkış aygıtı ayrı sol/sağ kanal sunmuyor. Stereo bir kulaklık çıkışı seçip tekrar dene." : "The selected output device does not expose separate left/right channels. Select a stereo headphone output and try again.", language == "tr" ? "Ses Dengesi" : "Audio Balance", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            Window dialog = new Window { Title = language == "tr" ? "Ses Dengesi" : "Audio Balance", Width = 570, Height = 430, WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = this, Background = Brush(Bg), Foreground = Brush(Text), ResizeMode = ResizeMode.NoResize };
+            Grid root = new Grid { Margin = new Thickness(24) };
+            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); root.RowDefinitions.Add(new RowDefinition()); root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            StackPanel intro = new StackPanel(); intro.Children.Add(Label(language == "tr" ? "Sol / Sağ Ses Dengesi" : "Left / Right Audio Balance", 24, FontWeights.SemiBold, Text));
+            TextBlock desc = Label(language == "tr" ? "Varsayılan Windows çıkışının iki kanalını bağımsız ayarlar. Değerler cihaz değiştirilene veya Windows tarafından sıfırlanana kadar korunur." : "Adjusts both channels of the default Windows output independently. Values remain until the device changes or Windows resets them.", 12, FontWeights.Normal, Muted); desc.TextWrapping = TextWrapping.Wrap; desc.Margin = new Thickness(0, 7, 0, 18); intro.Children.Add(desc); root.Children.Add(intro);
+
+            Grid controls = new Grid { Margin = new Thickness(0, 6, 0, 12) }; controls.ColumnDefinitions.Add(new ColumnDefinition()); controls.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(34) }); controls.ColumnDefinitions.Add(new ColumnDefinition());
+            Slider leftSlider; TextBlock leftValue; Border leftCard = AudioChannelCard(language == "tr" ? "SOL KULAK" : "LEFT EAR", levels[0], out leftSlider, out leftValue); controls.Children.Add(leftCard);
+            TextBlock divider = Label("L  •  R", 10, FontWeights.Bold, Accent); divider.HorizontalAlignment = HorizontalAlignment.Center; divider.VerticalAlignment = VerticalAlignment.Center; Grid.SetColumn(divider, 1); controls.Children.Add(divider);
+            Slider rightSlider; TextBlock rightValue; Border rightCard = AudioChannelCard(language == "tr" ? "SAĞ KULAK" : "RIGHT EAR", levels[1], out rightSlider, out rightValue); Grid.SetColumn(rightCard, 2); controls.Children.Add(rightCard);
+            leftSlider.ValueChanged += delegate { leftValue.Text = ((int)Math.Round(leftSlider.Value)) + "%"; };
+            rightSlider.ValueChanged += delegate { rightValue.Text = ((int)Math.Round(rightSlider.Value)) + "%"; };
+            Grid.SetRow(controls, 1); root.Children.Add(controls);
+
+            StackPanel footer = new StackPanel();
+            TextBlock warning = Label(language == "tr" ? "İpucu: Sağ kulağı desteklemek için sağı yüksek bırakıp solu kademeli azalt. Ani yüksek sesten kaçın." : "Tip: To support the right ear, keep Right higher and gradually lower Left. Avoid sudden loud output.", 11, FontWeights.Normal, "#E6BA5B"); warning.TextWrapping = TextWrapping.Wrap; warning.Margin = new Thickness(0, 0, 0, 12); footer.Children.Add(warning);
+            StackPanel actions = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+            actions.Children.Add(PillButton(language == "tr" ? "Ortala" : "Center", "#243127", delegate { double centered = Math.Min(100, Math.Max(leftSlider.Value, rightSlider.Value)); leftSlider.Value = centered; rightSlider.Value = centered; return Task.FromResult(0); }));
+            actions.Children.Add(PillButton(language == "tr" ? "Sağı Destekle" : "Support Right", "#243127", delegate { rightSlider.Value = Math.Max(rightSlider.Value, 90); leftSlider.Value = Math.Max(15, rightSlider.Value * 0.70); return Task.FromResult(0); }));
+            actions.Children.Add(PillButton(language == "tr" ? "Uygula" : "Apply", Accent2, delegate
+            {
+                try { AudioBalance.SetChannelLevels((float)(leftSlider.Value / 100.0), (float)(rightSlider.Value / 100.0)); statusText.Text = language == "tr" ? "Ses dengesi uygulandı" : "Audio balance applied"; dialog.Close(); }
+                catch (Exception ex) { MessageBox.Show(ex.Message, language == "tr" ? "Ses Dengesi" : "Audio Balance", MessageBoxButton.OK, MessageBoxImage.Warning); }
+                return Task.FromResult(0);
+            }));
+            footer.Children.Add(actions); Grid.SetRow(footer, 2); root.Children.Add(footer); dialog.Content = root; dialog.ShowDialog();
+        }
+
+        private Border AudioChannelCard(string title, float value, out Slider slider, out TextBlock valueLabel)
+        {
+            Border card = Glass(18, new Thickness(1)); card.Padding = new Thickness(18); card.Margin = new Thickness(0, 0, 0, 0);
+            StackPanel stack = new StackPanel(); TextBlock heading = Label(title, 10, FontWeights.Bold, Accent); heading.HorizontalAlignment = HorizontalAlignment.Center; stack.Children.Add(heading);
+            valueLabel = Label(((int)Math.Round(value * 100)) + "%", 30, FontWeights.SemiBold, Text); valueLabel.HorizontalAlignment = HorizontalAlignment.Center; valueLabel.Margin = new Thickness(0, 12, 0, 12); stack.Children.Add(valueLabel);
+            slider = new Slider { Minimum = 0, Maximum = 100, Value = Math.Max(0, Math.Min(100, value * 100)), TickFrequency = 1, IsSnapToTickEnabled = true, Margin = new Thickness(2, 0, 2, 6) }; stack.Children.Add(slider);
+            TextBlock scale = Label("0                                      100", 9, FontWeights.Normal, Muted); scale.HorizontalAlignment = HorizontalAlignment.Stretch; stack.Children.Add(scale); card.Child = stack; return card;
         }
 
         private void ShowGhostOverlay()
@@ -793,6 +846,109 @@ namespace ProjectMantis
             return s;
         }
         public void Save() { try { Directory.CreateDirectory(DataDir); File.WriteAllLines(FilePath, new[] { "language=" + Language, "close=" + CloseBehavior, "trayNotice=" + (TrayNoticeShown ? "1" : "0"), "minimizeToTray=" + (MinimizeOnMinimize ? "1" : "0") }); } catch { } }
+    }
+
+    // Uses the public Windows Core Audio endpoint-volume API. No driver, service,
+    // audio capture, process injection, or third-party component is involved.
+    internal static class AudioBalance
+    {
+        private static readonly Guid EndpointVolumeId = new Guid("5CDF2C82-841E-4546-9722-0CF74078229A");
+
+        public static float[] GetChannelLevels()
+        {
+            object deviceObject = null; object endpointObject = null; MMDeviceEnumerator enumerator = null;
+            try
+            {
+                enumerator = (MMDeviceEnumerator)new MMDeviceEnumeratorComObject();
+                IMMDevice device; Check(enumerator.GetDefaultAudioEndpoint(0, 1, out device)); deviceObject = device;
+                Guid iid = EndpointVolumeId; Check(device.Activate(ref iid, 23, IntPtr.Zero, out endpointObject));
+                IAudioEndpointVolume endpoint = (IAudioEndpointVolume)endpointObject;
+                uint count; Check(endpoint.GetChannelCount(out count));
+                float[] result = new float[count];
+                for (uint i = 0; i < count; i++) Check(endpoint.GetChannelVolumeLevelScalar(i, out result[i]));
+                return result;
+            }
+            finally
+            {
+                if (endpointObject != null && Marshal.IsComObject(endpointObject)) Marshal.FinalReleaseComObject(endpointObject);
+                if (deviceObject != null && Marshal.IsComObject(deviceObject)) Marshal.FinalReleaseComObject(deviceObject);
+                if (enumerator != null && Marshal.IsComObject(enumerator)) Marshal.FinalReleaseComObject(enumerator);
+            }
+        }
+
+        public static void SetChannelLevels(float left, float right)
+        {
+            left = Math.Max(0f, Math.Min(1f, left)); right = Math.Max(0f, Math.Min(1f, right));
+            object deviceObject = null; object endpointObject = null; MMDeviceEnumerator enumerator = null;
+            try
+            {
+                enumerator = (MMDeviceEnumerator)new MMDeviceEnumeratorComObject();
+                IMMDevice device; Check(enumerator.GetDefaultAudioEndpoint(0, 1, out device)); deviceObject = device;
+                Guid iid = EndpointVolumeId; Check(device.Activate(ref iid, 23, IntPtr.Zero, out endpointObject));
+                IAudioEndpointVolume endpoint = (IAudioEndpointVolume)endpointObject;
+                uint count; Check(endpoint.GetChannelCount(out count));
+                if (count < 2) throw new InvalidOperationException("The active output does not expose stereo channels.");
+                Guid context = Guid.Empty;
+                Check(endpoint.SetChannelVolumeLevelScalar(0, left, ref context));
+                Check(endpoint.SetChannelVolumeLevelScalar(1, right, ref context));
+            }
+            finally
+            {
+                if (endpointObject != null && Marshal.IsComObject(endpointObject)) Marshal.FinalReleaseComObject(endpointObject);
+                if (deviceObject != null && Marshal.IsComObject(deviceObject)) Marshal.FinalReleaseComObject(deviceObject);
+                if (enumerator != null && Marshal.IsComObject(enumerator)) Marshal.FinalReleaseComObject(enumerator);
+            }
+        }
+
+        private static void Check(int result) { if (result < 0) Marshal.ThrowExceptionForHR(result); }
+    }
+
+    [ComImport, Guid("BCDE0395-E52F-467C-8E3D-C4579291692E")]
+    internal class MMDeviceEnumeratorComObject { }
+
+    internal enum EDataFlow { Render = 0, Capture = 1, All = 2 }
+    internal enum ERole { Console = 0, Multimedia = 1, Communications = 2 }
+
+    [ComImport, Guid("A95664D2-9614-4F35-A746-DE8DB63617E6"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    internal interface MMDeviceEnumerator
+    {
+        [PreserveSig] int EnumAudioEndpoints(int dataFlow, uint stateMask, out IntPtr devices);
+        [PreserveSig] int GetDefaultAudioEndpoint(int dataFlow, int role, out IMMDevice endpoint);
+        [PreserveSig] int GetDevice([MarshalAs(UnmanagedType.LPWStr)] string id, out IMMDevice device);
+        [PreserveSig] int RegisterEndpointNotificationCallback(IntPtr client);
+        [PreserveSig] int UnregisterEndpointNotificationCallback(IntPtr client);
+    }
+
+    [ComImport, Guid("D666063F-1587-4E43-81F1-B948E807363F"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    internal interface IMMDevice
+    {
+        [PreserveSig] int Activate(ref Guid iid, uint classContext, IntPtr activationParams, [MarshalAs(UnmanagedType.IUnknown)] out object instance);
+        [PreserveSig] int OpenPropertyStore(uint access, out IntPtr properties);
+        [PreserveSig] int GetId([MarshalAs(UnmanagedType.LPWStr)] out string id);
+        [PreserveSig] int GetState(out uint state);
+    }
+
+    [ComImport, Guid("5CDF2C82-841E-4546-9722-0CF74078229A"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    internal interface IAudioEndpointVolume
+    {
+        [PreserveSig] int RegisterControlChangeNotify(IntPtr notify);
+        [PreserveSig] int UnregisterControlChangeNotify(IntPtr notify);
+        [PreserveSig] int GetChannelCount(out uint channelCount);
+        [PreserveSig] int SetMasterVolumeLevel(float levelDb, ref Guid eventContext);
+        [PreserveSig] int SetMasterVolumeLevelScalar(float level, ref Guid eventContext);
+        [PreserveSig] int GetMasterVolumeLevel(out float levelDb);
+        [PreserveSig] int GetMasterVolumeLevelScalar(out float level);
+        [PreserveSig] int SetChannelVolumeLevel(uint channel, float levelDb, ref Guid eventContext);
+        [PreserveSig] int SetChannelVolumeLevelScalar(uint channel, float level, ref Guid eventContext);
+        [PreserveSig] int GetChannelVolumeLevel(uint channel, out float levelDb);
+        [PreserveSig] int GetChannelVolumeLevelScalar(uint channel, out float level);
+        [PreserveSig] int SetMute([MarshalAs(UnmanagedType.Bool)] bool mute, ref Guid eventContext);
+        [PreserveSig] int GetMute([MarshalAs(UnmanagedType.Bool)] out bool mute);
+        [PreserveSig] int GetVolumeStepInfo(out uint step, out uint stepCount);
+        [PreserveSig] int VolumeStepUp(ref Guid eventContext);
+        [PreserveSig] int VolumeStepDown(ref Guid eventContext);
+        [PreserveSig] int QueryHardwareSupport(out uint hardwareSupportMask);
+        [PreserveSig] int GetVolumeRange(out float minDb, out float maxDb, out float incrementDb);
     }
 
     internal static class Native

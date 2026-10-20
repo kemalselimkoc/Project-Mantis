@@ -8,7 +8,7 @@
 
 ## Install for regular users
 
-1. Download `Project-Mantis-v1.2.0-win64.zip` from the latest GitHub Release.
+1. Download `Project-Mantis-v1.3.0-win64.zip` from the latest GitHub Release.
 2. Extract the complete ZIP to a folder.
 3. Double-click **Install Project Mantis.bat**.
 4. Mantis creates a desktop shortcut, optionally launches with Windows, and opens automatically.
@@ -26,13 +26,14 @@ GitHub Release before running it.
 - Toggles the High Performance power plan and restores the previous plan when toggled off or when Mantis exits.
 - Keeps the PC awake during long renders/downloads.
 - Flushes DNS cache.
+- Adjusts the default Windows output's left and right channel levels independently through the built-in Core Audio API, with no driver or audio capture.
 - Ghost Overlay accepts compact browser Picture-in-Picture windows and supported media players while excluding full-size browser windows. It keeps the video always on top, click-through, and optionally translucent. `Ctrl+Shift+M` toggles video interaction; **Release Active** removes the overlay completely.
 - Optional launch-at-login, per-user and easy to disable.
 - Stores settings and a small operation log locally under `%LOCALAPPDATA%\ProjectMantis`.
 
 ## Build from source
 
-Run `install.ps1` from PowerShell. It builds `dist\ProjectMantis-v1.2.0.exe` using the Windows .NET Framework compiler and creates a desktop shortcut. No network download is required.
+Run `install.ps1` from PowerShell. It builds `dist\ProjectMantis-v1.3.0.exe` using the Windows .NET Framework compiler and creates a desktop shortcut. No network download is required.
 
 Closing Mantis asks once whether the close button should exit or minimize to the system tray. The choice can be changed later in Settings. The tray icon can restore or fully exit the app.
 
@@ -50,6 +51,7 @@ Coffee buttons only open the listed external pages.
 - Adobe caches are skipped whenever a supported Adobe process is active.
 - Power-plan changes are reversible.
 - Memory trimming may make background apps reload some data; Windows automatically gives memory back when needed.
+- Audio Balance changes the per-channel level exposed by the active Windows output. Begin at a comfortable volume and avoid sudden increases; Mantis is not a medical or hearing-calibration device.
 - Ghost Overlay only changes standard Windows styles on the selected browser/media-player window. It does not inject into, inspect, hook, or modify a game process. No utility can guarantee compatibility with every third-party anti-cheat, so use the feature only with supported video windows and release it if a game objects to overlays.
 
 ## License and publisher

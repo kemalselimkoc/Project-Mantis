@@ -14,6 +14,9 @@ the extent permitted by law. Mandatory consumer rights are not excluded.
 
 Memory optimization trims process working sets; Windows may reload data later.
 Game Mode changes the active Windows power plan and attempts to restore it.
+Audio Balance changes the per-channel volume exposed by the active Windows
+output. It is an accessibility convenience, not a medical device or calibrated
+hearing aid. Use a comfortable master volume and avoid sudden loud output.
 Ghost Overlay changes ordinary Windows styles only on a user-selected supported
 browser Picture-in-Picture window or media player. It does not inject code into,
 read memory from, hook, automate, or modify games. Compatibility with every
