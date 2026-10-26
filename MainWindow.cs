@@ -109,6 +109,7 @@ namespace ProjectMantis
             tr["restartAdmin"] = "Yönetici olarak yeniden başlat"; en["restartAdmin"] = "Restart as administrator";
             tr["run"] = "Çalıştır"; en["run"] = "Run";
             tr["updates"] = "Güncellemeler"; en["updates"] = "Updates";
+            tr["security"] = "Güvenlik"; en["security"] = "Security";
             tr["minimize"] = "Küçült"; en["minimize"] = "Minimize";
             tr["maximize"] = "Büyüt / Geri al"; en["maximize"] = "Maximize / Restore";
             tr["close"] = "Kapat"; en["close"] = "Close";
@@ -176,6 +177,7 @@ namespace ProjectMantis
             nav.Children.Add(Nav("clean", Icons.Sparkle, T("clean"), Theme.SectionCleaner, ShowCleaner));
             nav.Children.Add(Nav("tools", Icons.Apps, T("tools"), Theme.SectionTools, ShowTools));
             nav.Children.Add(Nav("updates", Icons.Download, T("updates"), Theme.SectionUpdates, ShowUpdates));
+            nav.Children.Add(Nav("security", Icons.Shield, T("security"), Theme.SectionSecurity, ShowSecurity));
             nav.Children.Add(Nav("settings", Icons.Sliders, T("settings"), Theme.SectionSettings, ShowSettings));
             ScrollViewer navScroll = Scroll(nav); navScroll.Padding = new Thickness(0);
             Grid.SetRow(navScroll, 2); grid.Children.Add(navScroll);
@@ -414,6 +416,11 @@ namespace ProjectMantis
                 PillButton("Secondary", ButtonKind.Secondary, delegate { return Task.FromResult(0); }, Icons.Search, Theme.AccentPrimary),
                 PillButton("Primary", ButtonKind.Primary, delegate { return Task.FromResult(0); }, Icons.Download, Theme.Violet)));
             StackPanel list = new StackPanel();
+            // Sample findings (gallery only) to review FindingRow in every severity.
+            list.Children.Add(FindingRow(Finding.Issue("G1", Severity.High, "SMBv1 açık", "SMBv1 is enabled", "Eski dosya paylaşım protokolü; fidye yazılımlarının sık kullandığı bir giriş.", "Legacy file-sharing protocol often abused by ransomware.").Recommend("Eski bir cihaz gerektirmiyorsa kapat.", "Turn it off unless an old device needs it.").WithFix(FixKinds.OpenSettings, "ms-settings:", true, "", "")));
+            list.Children.Add(FindingRow(Finding.Issue("G2", Severity.Medium, "BitLocker kapalı", "BitLocker is off", "Sistem sürücüsü şifreli değil.", "The system drive is not encrypted.").WithFix(FixKinds.OpenSettings, "ms-settings:deviceencryption", false, "", "")));
+            list.Children.Add(FindingRow(Finding.Issue("G3", Severity.Low, "Yerleşik Administrator etkin", "Built-in Administrator is enabled", "Kullanılmıyorsa devre dışı bırakmak saldırı yüzeyini azaltır.", "Disabling it when unused reduces attack surface.")));
+            list.Children.Add(FindingRow(Finding.Ok("G4", "Güvenlik Duvarı tüm profillerde açık", "Firewall is on for all profiles")));
             Grid states = new Grid(); states.ColumnDefinitions.Add(new ColumnDefinition()); states.ColumnDefinitions.Add(new ColumnDefinition());
             Border empty = EmptyState(Icons.Shield, language == "tr" ? "Henüz taranmadı" : "Not scanned yet", language == "tr" ? "Check-Up hiçbir ayarı değiştirmeden sisteminin durumunu raporlar." : "Check-Up reports your system's state without changing any setting.", language == "tr" ? "Başlat" : "Start", delegate { return Task.FromResult(0); }, Theme.Amber);
             empty.Margin = new Thickness(0, 0, Theme.S2, Theme.S4); states.Children.Add(empty);
@@ -425,8 +432,6 @@ namespace ProjectMantis
             Border error = ErrorState(language == "tr" ? "Bu kontrol yönetici ister" : "This check needs administrator", language == "tr" ? "BitLocker ve Secure Boot durumu standart modda okunamıyor." : "BitLocker and Secure Boot cannot be read in standard mode.", true);
             error.Margin = new Thickness(Theme.S2, 0, 0, Theme.S4); Grid.SetColumn(error, 1); states2.Children.Add(error);
             list.Children.Add(states2);
-            list.Children.Add(ListRow(Icons.Alert, "HIGH", "SMBv1 is enabled", "Legacy file-sharing protocol; disable it unless an old device needs it.", Theme.Danger, PillButton("Fix", ButtonKind.Danger, delegate { return Task.FromResult(0); })));
-            list.Children.Add(ListRow(Icons.InfoCircle, "INFO", "Firewall is on for all profiles", null, Theme.Info, Badge("OK", Theme.Info)));
             ScrollViewer scroller = Scroll(list); Grid.SetRow(scroller, 1); page.Children.Add(scroller); SetPage(page, "gallery");
         }
 

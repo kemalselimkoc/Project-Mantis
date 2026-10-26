@@ -289,6 +289,31 @@ namespace ProjectMantis
             return new ScrollViewer { Content = body, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Padding = new Thickness(0, 0, Theme.S1, 0), Focusable = false };
         }
 
+        // On/off switch with an animated knob. Reports the new state; the caller decides what it means.
+        private Button Toggle(bool on, string accent, string tooltip, Action<bool> changed)
+        {
+            bool state = on;
+            Border track = new Border { Width = 38, Height = 22, CornerRadius = new CornerRadius(11), BorderThickness = new Thickness(1) };
+            TranslateTransform slide = new TranslateTransform(on ? 16 : 0, 0);
+            Border knob = new Border { Width = 14, Height = 14, CornerRadius = new CornerRadius(7), HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(3, 0, 0, 0), RenderTransform = slide };
+            track.Child = knob;
+            Action paint = delegate
+            {
+                track.Background = Theme.Brush(state ? Theme.Alpha(accent, 0xD9) : Theme.Control);
+                track.BorderBrush = Theme.Brush(state ? accent : Theme.StrokeStrong);
+                knob.Background = Theme.Brush(state ? Theme.OnAccent : Theme.TextMuted);
+            };
+            paint();
+            Button b = new Button { Content = track, Cursor = Cursors.Hand, ToolTip = tooltip, FocusVisualStyle = FocusVisual(), Template = ButtonTemplate(11, "#00000000", "#00000000", "#00000000"), Padding = new Thickness(0), VerticalAlignment = VerticalAlignment.Center };
+            b.Click += delegate
+            {
+                state = !state; paint();
+                slide.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(state ? 16 : 0, Theme.Fast) { EasingFunction = Ease() });
+                changed(state);
+            };
+            return b;
+        }
+
         // ---------- Rows & badges ----------
 
         private Border Badge(string text, string color)

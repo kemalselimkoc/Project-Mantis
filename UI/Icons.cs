@@ -39,6 +39,9 @@ namespace ProjectMantis
         public static readonly Geometry ArrowRight = P("M5,12 H19 M13.5,6.5 L19,12 L13.5,17.5");
         public static readonly Geometry ArrowUpRight = P("M7,17 L17,7 M9,7 H17 V15");
         public static readonly Geometry ChevronRight = P("M9.5,6 L15.5,12 L9.5,18");
+        public static readonly Geometry Key = P(Circle(8, 15.5, 3.5), "M10.5,13 L19,4.5 M16,7.5 L18.5,10 M13.8,9.7 L15.8,11.7");
+        public static readonly Geometry Bug = P(Circle(12, 13.5, 5), "M12,8.5 V18.5 M7,13.5 H4 M20,13.5 H17 M8.3,10 L5.8,7.5 M15.7,10 L18.2,7.5 M8.3,17 L5.8,19.5 M15.7,17 L18.2,19.5 M10,8.8 C10,7.4 10.9,6.5 12,6.5 C13.1,6.5 14,7.4 14,8.8");
+        public static readonly Geometry Network = P(Circle(12, 5.5, 2.2), Circle(5.5, 18, 2.2), Circle(18.5, 18, 2.2), "M11,7.5 L6.6,16 M13,7.5 L17.4,16 M7.7,18 H16.3");
         public static readonly Geometry Minimize = P("M6,12 H18");
         public static readonly Geometry Maximize = P("M6.5,6.5 H17.5 V17.5 H6.5 Z");
         public static readonly Geometry Restore = P("M6,9 H15 V18 H6 Z M9,9 V6 H18 V15 H15");
