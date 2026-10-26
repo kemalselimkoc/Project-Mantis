@@ -42,10 +42,18 @@ try {
     $writer.Close()
 } finally { $stream.Dispose() }
 
-& $csc /nologo /target:winexe /platform:anycpu /optimize+ /win32icon:"$project\assets\mantis.ico" /out:"$out\ProjectMantis-v1.3.1.exe" @refArgs "$project\App.xaml.cs" "$project\MainWindow.cs"
+$version = [regex]::Match((Get-Content (Join-Path $project 'AppInfo.cs') -Raw), 'Version\s*=\s*"([^"]+)"').Groups[1].Value
+if (-not $version) { throw 'Version not found in AppInfo.cs' }
+$exeName = "ProjectMantis-v$version.exe"
+
+# Every .cs file in the project (UI\, Core\, Modules\ ...) except build output folders.
+$skip = @('obj', 'dist', 'release') | ForEach-Object { Join-Path $project $_ }
+$sources = Get-ChildItem $project -Recurse -Filter '*.cs' | Where-Object { $f = $_.FullName; -not ($skip | Where-Object { $f.StartsWith($_ + '\') }) } | ForEach-Object { $_.FullName } | Sort-Object
+
+& $csc /nologo /target:winexe /platform:anycpu /optimize+ /win32icon:"$project\assets\mantis.ico" /out:"$out\$exeName" @refArgs @sources
 if ($LASTEXITCODE -ne 0) { throw "Build failed with exit code $LASTEXITCODE" }
 
 Copy-Item "$project\README.md" "$out\README.txt" -Force
 New-Item -ItemType Directory -Force -Path "$out\assets" | Out-Null
 if (-not (Test-Path "$out\assets\mantis-logo.png")) { Copy-Item "$project\assets\mantis-logo.png" "$out\assets\mantis-logo.png" }
-Write-Host "Built: $out\ProjectMantis-v1.3.1.exe"
+Write-Host "Built: $out\$exeName"

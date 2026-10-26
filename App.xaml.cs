@@ -11,6 +11,9 @@ namespace ProjectMantis
     {
         private Mutex instanceMutex;
 
+        // Session-only language from --lang=tr|en (used for screenshots); never written to settings.ini.
+        internal static string LanguageOverride;
+
         internal static void Log(string message)
         {
             try { System.IO.File.AppendAllText(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startup.log"), DateTime.Now.ToString("s") + " " + message + Environment.NewLine); } catch { }
@@ -23,6 +26,9 @@ namespace ProjectMantis
             {
                 Log("Main entered");
                 App app = new App();
+                if (args != null)
+                    foreach (string arg in args)
+                        if (arg == "--lang=en" || arg == "--lang=tr") LanguageOverride = arg.Substring(7);
                 MainWindow window = new MainWindow();
                 Log("MainWindow constructed");
                 if (args != null && Array.IndexOf(args, "--self-test") >= 0)
@@ -30,6 +36,12 @@ namespace ProjectMantis
                     window.SelfTestClose();
                     Environment.Exit(0);
                 }
+                if (args != null)
+                    foreach (string arg in args)
+                    {
+                        if (arg.StartsWith("--page=", StringComparison.OrdinalIgnoreCase)) window.OpenPage(arg.Substring(7).ToLowerInvariant());
+                        else if (arg.StartsWith("--snapshot=", StringComparison.OrdinalIgnoreCase)) window.SnapshotAndExit(arg.Substring(11));
+                    }
                 Log("Application.Run starting");
                 app.Run(window);
                 Log("Application.Run returned");
@@ -52,6 +64,11 @@ namespace ProjectMantis
         {
             bool created;
             instanceMutex = new Mutex(true, "ProjectMantis.SingleInstance.5", out created);
+            // An elevated restart starts while the previous instance is still shutting down; wait for it briefly.
+            if (!created && Array.IndexOf(Environment.GetCommandLineArgs(), "--elevated") >= 0)
+            {
+                try { created = instanceMutex.WaitOne(8000); } catch (AbandonedMutexException) { created = true; }
+            }
             Log("OnStartup mutex created=" + created);
             if (!created)
             {

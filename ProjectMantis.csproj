@@ -19,8 +19,7 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="App.xaml.cs" />
-    <Compile Include="MainWindow.cs" />
+    <Compile Include="**\*.cs" Exclude="obj\**;dist\**;release\**" />
     <Resource Include="assets\mantis-logo.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
