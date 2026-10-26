@@ -44,6 +44,17 @@ namespace ProjectMantis
             RenderSecurity();
         }
 
+        // Developer aid (--run=hardening,persistence): opens Check-Up and runs those read-only modules on start.
+        internal void AutoRun(string ids)
+        {
+            Loaded += async delegate
+            {
+                ShowSecurity();
+                HashSet<string> wanted = new HashSet<string>(ids.Split(','), StringComparer.OrdinalIgnoreCase);
+                await RunModules(securityModules.Where(m => wanted.Contains(m.Id)).ToList());
+            };
+        }
+
         private HashSet<string> LoadCheckupSelection()
         {
             HashSet<string> set = new HashSet<string>(StringComparer.Ordinal);

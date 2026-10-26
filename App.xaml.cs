@@ -42,6 +42,7 @@ namespace ProjectMantis
                     {
                         if (arg.StartsWith("--page=", StringComparison.OrdinalIgnoreCase)) window.OpenPage(arg.Substring(7).ToLowerInvariant());
                         else if (arg.StartsWith("--snapshot=", StringComparison.OrdinalIgnoreCase)) window.SnapshotAndExit(arg.Substring(11));
+                        else if (arg.StartsWith("--run=", StringComparison.OrdinalIgnoreCase)) window.AutoRun(arg.Substring(6));
                         else if (arg.StartsWith("--wait=", StringComparison.OrdinalIgnoreCase)) double.TryParse(arg.Substring(7), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out SnapshotWait);
                         else if (arg.StartsWith("--size=", StringComparison.OrdinalIgnoreCase))
                         {
