@@ -130,7 +130,10 @@ namespace ProjectMantis
 
         // Three variants (+ danger): Primary = filled accent, Secondary = surface + stroke, Ghost = text only.
         // All get hover (120ms color ease), pressed (scale) and disabled (dimmed) states from the template.
-        private Button PillButton(string title, ButtonKind kind, Func<Task> click, Geometry icon, string accent)
+        private Button PillButton(string title, ButtonKind kind, Func<Task> click, Geometry icon, string accent) { return PillButton(title, kind, click, icon, accent, false); }
+
+        // whileBusy: the button keeps working during a running task (used for Stop).
+        private Button PillButton(string title, ButtonKind kind, Func<Task> click, Geometry icon, string accent, bool whileBusy)
         {
             string normal, hover, stroke, fg;
             switch (kind)
@@ -150,7 +153,7 @@ namespace ProjectMantis
                 Cursor = Cursors.Hand, HorizontalContentAlignment = HorizontalAlignment.Center, VerticalContentAlignment = VerticalAlignment.Center, FocusVisualStyle = FocusVisual(),
                 Template = ButtonTemplate(Theme.RadiusMd - 2, normal, hover, stroke)
             };
-            b.Click += async delegate { if (!busy) await click(); };
+            b.Click += async delegate { if (!busy || whileBusy) await click(); };
             return b;
         }
 

@@ -28,7 +28,7 @@ namespace ProjectMantis
         private sealed class NavItem
         {
             public string Key; public string Accent; public Action Show;
-            public Border Fill; public Border Indicator; public Shape IconPath; public TextBlock Text;
+            public Border Fill; public Border Indicator; public Shape IconPath; public TextBlock Text; public Border Badge;
         }
 
         private sealed class Gauge { public TextBlock Value; public ScaleTransform Scale; public Border Fill; public bool Inverse; }
@@ -108,6 +108,7 @@ namespace ProjectMantis
             tr["standard"] = "Standart mod"; en["standard"] = "Standard mode";
             tr["restartAdmin"] = "Yönetici olarak yeniden başlat"; en["restartAdmin"] = "Restart as administrator";
             tr["run"] = "Çalıştır"; en["run"] = "Run";
+            tr["updates"] = "Güncellemeler"; en["updates"] = "Updates";
             tr["minimize"] = "Küçült"; en["minimize"] = "Minimize";
             tr["maximize"] = "Büyüt / Geri al"; en["maximize"] = "Maximize / Restore";
             tr["close"] = "Kapat"; en["close"] = "Close";
@@ -174,6 +175,7 @@ namespace ProjectMantis
             nav.Children.Add(Nav("dashboard", Icons.Home, T("dashboard"), Theme.SectionOverview, ShowDashboard));
             nav.Children.Add(Nav("clean", Icons.Sparkle, T("clean"), Theme.SectionCleaner, ShowCleaner));
             nav.Children.Add(Nav("tools", Icons.Apps, T("tools"), Theme.SectionTools, ShowTools));
+            nav.Children.Add(Nav("updates", Icons.Download, T("updates"), Theme.SectionUpdates, ShowUpdates));
             nav.Children.Add(Nav("settings", Icons.Sliders, T("settings"), Theme.SectionSettings, ShowSettings));
             ScrollViewer navScroll = Scroll(nav); navScroll.Padding = new Thickness(0);
             Grid.SetRow(navScroll, 2); grid.Children.Add(navScroll);
@@ -259,6 +261,10 @@ namespace ProjectMantis
             Shape path; Viewbox v = Glyph(icon, 18, Theme.TextMuted, out path); item.IconPath = path; inner.Children.Add(v);
             item.Text = Label(title, Theme.Body, FontWeights.Normal, Theme.TextMuted); item.Text.Margin = new Thickness(Theme.S3, 0, 0, 0); item.Text.VerticalAlignment = VerticalAlignment.Center; inner.Children.Add(item.Text);
             row.Children.Add(inner);
+            // Small count pill on the right (e.g. available updates); hidden until a page sets it.
+            item.Badge = new Border { CornerRadius = new CornerRadius(8), Padding = new Thickness(7, 1, 7, 2), Margin = new Thickness(0, 0, Theme.S3, 0), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Background = Theme.Brush(Theme.Alpha(accent, 0x26)), Visibility = Visibility.Collapsed, Child = Label("", Theme.Micro - 0.5, FontWeights.SemiBold, accent) };
+            Tabular((TextBlock)item.Badge.Child);
+            row.Children.Add(item.Badge);
             Button b = new Button
             {
                 Content = row, Margin = new Thickness(0, 0, 0, Theme.S1), Cursor = System.Windows.Input.Cursors.Hand, HorizontalContentAlignment = HorizontalAlignment.Stretch,
@@ -267,6 +273,16 @@ namespace ProjectMantis
             b.Click += delegate { action(); };
             navItems.Add(item);
             return b;
+        }
+
+        private void SetNavBadge(string key, string text)
+        {
+            foreach (NavItem n in navItems)
+                if (n.Key == key && n.Badge != null)
+                {
+                    ((TextBlock)n.Badge.Child).Text = text ?? "";
+                    n.Badge.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
+                }
         }
 
         private void SelectNav(string key)
@@ -418,7 +434,7 @@ namespace ProjectMantis
         {
             settings.Language = language; settings.Save();
             string page = currentPage;
-            navItems.Clear(); Content = BuildShell(); OpenPage(page); RefreshMetrics();
+            navItems.Clear(); Content = BuildShell(); UpdatesBadge(); OpenPage(page); RefreshMetrics();
         }
 
         private Border ToolTile(Geometry icon, string title, string desc, string color, Func<Task> action)
