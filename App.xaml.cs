@@ -13,6 +13,7 @@ namespace ProjectMantis
 
         // Session-only language from --lang=tr|en (used for screenshots); never written to settings.ini.
         internal static string LanguageOverride;
+        internal static double SnapshotWait = 1.6;
 
         internal static void Log(string message)
         {
@@ -41,6 +42,13 @@ namespace ProjectMantis
                     {
                         if (arg.StartsWith("--page=", StringComparison.OrdinalIgnoreCase)) window.OpenPage(arg.Substring(7).ToLowerInvariant());
                         else if (arg.StartsWith("--snapshot=", StringComparison.OrdinalIgnoreCase)) window.SnapshotAndExit(arg.Substring(11));
+                        else if (arg.StartsWith("--wait=", StringComparison.OrdinalIgnoreCase)) double.TryParse(arg.Substring(7), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out SnapshotWait);
+                        else if (arg.StartsWith("--size=", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string[] wh = arg.Substring(7).Split('x');
+                            double w, h;
+                            if (wh.Length == 2 && double.TryParse(wh[0], out w) && double.TryParse(wh[1], out h)) { window.Width = Math.Max(window.MinWidth, w); window.Height = Math.Max(window.MinHeight, h); }
+                        }
                     }
                 Log("Application.Run starting");
                 app.Run(window);

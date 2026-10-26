@@ -15,6 +15,7 @@ namespace ProjectMantis
         [DllImport("kernel32.dll")] public static extern bool GlobalMemoryStatusEx(ref MemoryStatus status);
         [DllImport("kernel32.dll")] public static extern uint SetThreadExecutionState(uint flags);
         [DllImport("kernel32.dll")] public static extern uint GetOEMCP();
+        [DllImport("kernel32.dll")] public static extern ulong GetTickCount64();
         [DllImport("user32.dll")] public static extern bool EnumWindows(EnumWindowsProc callback, IntPtr lParam);
         [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern int GetWindowText(IntPtr hwnd, StringBuilder text, int count);
         [DllImport("user32.dll")] public static extern int GetWindowTextLength(IntPtr hwnd);

@@ -11,6 +11,37 @@ namespace ProjectMantis
 {
     internal sealed class CleanupResult { public long Bytes; public int Files; public int Skipped; public bool AdobeRunning; }
 
+    // Reads past runs back from mantis.log ("CLEAN | 2026-10-24T04:18:56 | bytes=... files=...").
+    internal sealed class CleanupHistory
+    {
+        public DateTime? LastClean; public long LastCleanBytes; public long TotalCleanBytes; public int CleanRuns;
+        public DateTime? LastScan; public long LastScanBytes;
+
+        public static CleanupHistory Read()
+        {
+            CleanupHistory h = new CleanupHistory();
+            try
+            {
+                if (!File.Exists(Settings.LogPath)) return h;
+                foreach (string line in File.ReadAllLines(Settings.LogPath))
+                {
+                    string[] parts = line.Split('|');
+                    if (parts.Length < 3) continue;
+                    string kind = parts[0].Trim();
+                    DateTime when;
+                    if (!DateTime.TryParse(parts[1].Trim(), System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeLocal, out when)) continue;
+                    long bytes = 0;
+                    foreach (string field in parts[2].Trim().Split(' '))
+                        if (field.StartsWith("bytes=")) long.TryParse(field.Substring(6), out bytes);
+                    if (kind == "CLEAN") { h.LastClean = when; h.LastCleanBytes = bytes; h.TotalCleanBytes += bytes; h.CleanRuns++; }
+                    else if (kind == "SCAN") { h.LastScan = when; h.LastScanBytes = bytes; }
+                }
+            }
+            catch { }
+            return h;
+        }
+    }
+
     internal static class Cleaner
     {
         private static readonly string[] AdobeProcesses = { "AfterFX", "Adobe Premiere Pro", "MediaEncoder", "dynamiclinkmanager", "aerender" };
@@ -63,8 +94,9 @@ namespace ProjectMantis
                 try
                 {
                     FileInfo info = new FileInfo(file); long size = info.Exists ? info.Length : 0;
-                    result.Files++; result.Bytes += size;
+                    // Count a file only once it is really gone, so "space reclaimed" never includes skipped files.
                     if (!scanOnly) { info.IsReadOnly = false; info.Delete(); }
+                    result.Files++; result.Bytes += size;
                 }
                 catch { result.Skipped++; }
             }

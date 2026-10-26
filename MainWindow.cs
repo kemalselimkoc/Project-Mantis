@@ -333,27 +333,6 @@ namespace ProjectMantis
 
         // ---------- Pages ----------
 
-        private void ShowDashboard()
-        {
-            Grid page = PageGrid();
-            page.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            page.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-            page.Children.Add(Header(language == "tr" ? "GENEL BAKIŞ" : "OVERVIEW", Theme.SectionOverview, Greeting(), language == "tr" ? "Bilgisayarın sakin. İstersen biraz daha hafifletelim." : "Your PC looks calm. Let's keep it light."));
-            Grid cards = new Grid();
-            cards.ColumnDefinitions.Add(new ColumnDefinition()); cards.ColumnDefinitions.Add(new ColumnDefinition());
-            cards.RowDefinitions.Add(new RowDefinition()); cards.RowDefinitions.Add(new RowDefinition());
-            double gap = Theme.S2;
-            Border clean = ActionCard("CLEAN", language == "tr" ? "Temizle!" : "Clean it!", language == "tr" ? "Geçici dosyaları ve Adobe cache'lerini güvenle süpür." : "Safely sweep temporary files and Adobe caches.", Icons.Sparkle, Theme.SectionCleaner, async delegate { await RunCleanup(false); });
-            clean.Margin = new Thickness(0, 0, gap, gap); cards.Children.Add(clean);
-            Border ram = ActionCard("MEMORY", language == "tr" ? "Uçur!" : "Lift off!", language == "tr" ? "Boşta tutulan çalışma belleğini Windows'a geri ver." : "Return idle working memory back to Windows.", Icons.Chip, Theme.Info, async delegate { await RunMemoryOptimization(); });
-            ram.Margin = new Thickness(gap, 0, 0, gap); Grid.SetColumn(ram, 1); cards.Children.Add(ram);
-            Border boost = ActionCard("FOCUS", language == "tr" ? "Oyun Modu" : "Game Mode", language == "tr" ? "Yüksek performans güç planını tek tıkla aç / geri al." : "Toggle the high-performance power plan and restore it later.", Icons.Bolt, Theme.Warning, async delegate { await ToggleBoost(); });
-            boost.Margin = new Thickness(0, gap, gap, 0); Grid.SetRow(boost, 1); cards.Children.Add(boost);
-            Border scan = ActionCard("INSIGHT", language == "tr" ? "Önce Tara" : "Scan First", language == "tr" ? "Hiçbir şeyi silmeden kazanılabilir alanı gör." : "See reclaimable space without deleting anything.", Icons.Search, Theme.Violet, async delegate { await RunCleanup(true); });
-            scan.Margin = new Thickness(gap, gap, 0, 0); Grid.SetRow(scan, 1); Grid.SetColumn(scan, 1); cards.Children.Add(scan);
-            Grid.SetRow(cards, 1); page.Children.Add(cards); SetPage(page, "dashboard");
-        }
-
         private void ShowCleaner()
         {
             Grid page = PageGrid();
@@ -440,26 +419,6 @@ namespace ProjectMantis
             settings.Language = language; settings.Save();
             string page = currentPage;
             navItems.Clear(); Content = BuildShell(); OpenPage(page); RefreshMetrics();
-        }
-
-        private Border ActionCard(string eyebrow, string title, string desc, Geometry icon, string color, Func<Task> action)
-        {
-            Border card = Card(Theme.RadiusLg, true); card.Padding = new Thickness(Theme.S5);
-            Grid g = new Grid(); g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); g.RowDefinitions.Add(new RowDefinition()); g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            Grid top = new Grid(); top.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); top.ColumnDefinitions.Add(new ColumnDefinition());
-            top.Children.Add(IconBadge(icon, color, 44, 22));
-            TextBlock eye = Eyebrow(eyebrow, color); eye.VerticalAlignment = VerticalAlignment.Center; eye.Margin = new Thickness(Theme.S3 + 2, 0, 0, 0); Grid.SetColumn(eye, 1); top.Children.Add(eye);
-            g.Children.Add(top);
-            StackPanel middle = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, Theme.S4, 0, Theme.S4) };
-            middle.Children.Add(Label(title, 26, FontWeights.SemiBold, Theme.TextPrimary));
-            TextBlock d = Paragraph(desc, Theme.Body, Theme.TextMuted); d.Margin = new Thickness(0, Theme.S1 + 2, Theme.S5, 0); middle.Children.Add(d);
-            Grid.SetRow(middle, 1); g.Children.Add(middle);
-            StackPanel go = new StackPanel { Orientation = Orientation.Horizontal };
-            go.Children.Add(Label(T("run"), Theme.Small, FontWeights.SemiBold, color));
-            Viewbox arrow = Glyph(Icons.ArrowRight, 14, color); arrow.Margin = new Thickness(Theme.S2 - 2, 1, 0, 0); go.Children.Add(arrow);
-            Grid.SetRow(go, 2); g.Children.Add(go);
-            card.Child = g; card.MouseLeftButtonUp += async delegate { if (!busy) await action(); };
-            return card;
         }
 
         private Border ToolTile(Geometry icon, string title, string desc, string color, Func<Task> action)
@@ -603,8 +562,9 @@ namespace ProjectMantis
             CleanupResult result = await Task.Run(() => Cleaner.Run(scanOnly));
             SetBusy(false, T("ready"));
             string title = scanOnly ? (language == "tr" ? "Tarama tamamlandı" : "Scan complete") : (language == "tr" ? "Temizlik tamamlandı" : "Cleanup complete");
-            string body = (scanOnly ? (language == "tr" ? "Kazanılabilir: " : "Reclaimable: ") : (language == "tr" ? "Kazanılan alan: " : "Space reclaimed: ")) + FormatBytes(result.Bytes) + "\n" + result.Files.ToString("N0") + (language == "tr" ? " dosya bulundu/işlendi." : " files found/processed.") + (result.Skipped > 0 ? "\n" + result.Skipped + (language == "tr" ? " kilitli veya erişilemeyen öğe atlandı." : " locked or inaccessible items skipped.") : "") + (result.AdobeRunning ? "\n\n" + (language == "tr" ? "Adobe uygulaması açık olduğu için Adobe cache güvenle atlandı." : "Adobe cache was safely skipped because an Adobe app is open.") : "");
+            string body = (scanOnly ? (language == "tr" ? "Kazanılabilir: " : "Reclaimable: ") : (language == "tr" ? "Kazanılan alan: " : "Space reclaimed: ")) + FormatBytes(result.Bytes) + "\n" + result.Files.ToString("N0", UiCulture) + (language == "tr" ? " dosya bulundu/işlendi." : " files found/processed.") + (result.Skipped > 0 ? "\n" + result.Skipped + (language == "tr" ? " kilitli veya erişilemeyen öğe atlandı." : " locked or inaccessible items skipped.") : "") + (result.AdobeRunning ? "\n\n" + (language == "tr" ? "Adobe uygulaması açık olduğu için Adobe cache güvenle atlandı." : "Adobe cache was safely skipped because an Adobe app is open.") : "");
             MessageBox.Show(body, title, MessageBoxButton.OK, MessageBoxImage.Information);
+            if (currentPage == "dashboard") ShowDashboard();
         }
 
         private async Task RunMemoryOptimization()
@@ -632,6 +592,7 @@ namespace ProjectMantis
                 bool restored = PowerTools.SetScheme(lastPowerScheme); if (restored) boostActive = false; return restored;
             });
             SetBusy(false, boostActive ? (language == "tr" ? "Oyun modu açık" : "Game mode active") : T("ready"));
+            UpdateDashboardStates();
             MessageBox.Show(ok ? (boostActive ? (language == "tr" ? "Yüksek performans güç planı açıldı. Aynı düğmeyle eski plana dönebilirsin." : "High-performance power plan enabled. Use the same button to restore the previous plan.") : (language == "tr" ? "Önceki güç planı geri yüklendi." : "Previous power plan restored.")) : (language == "tr" ? "Güç planı değiştirilemedi. Yönetici olarak deneyebilirsin." : "Could not change the power plan. Try as administrator."), "Project Mantis", MessageBoxButton.OK, ok ? MessageBoxImage.Information : MessageBoxImage.Warning);
         }
 
@@ -640,6 +601,7 @@ namespace ProjectMantis
             keepAwake = !keepAwake;
             PowerTools.KeepAwake(keepAwake);
             SetBusy(false, keepAwake ? (language == "tr" ? "Uyku engelleniyor" : "Sleep is prevented") : T("ready"));
+            UpdateDashboardStates();
             MessageBox.Show(keepAwake ? (language == "tr" ? "Bilgisayar Mantis açıkken uykuya geçmeyecek." : "Your PC will stay awake while Mantis is open.") : (language == "tr" ? "Normal uyku davranışı geri geldi." : "Normal sleep behavior restored."), "Project Mantis");
         }
 
@@ -670,6 +632,10 @@ namespace ProjectMantis
                 UpdateGauge(cpuGauge, m.Cpu);
                 UpdateGauge(ramGauge, m.Ram);
                 UpdateGauge(diskGauge, m.DiskFree);
+                bool first = !hasMetrics;
+                lastMetrics = m; hasMetrics = true;
+                cpuHistory.Add(m.Cpu); if (cpuHistory.Count > HistoryLength) cpuHistory.RemoveAt(0);
+                UpdateDashboardLive(m, first);
             }
             catch { }
         }
@@ -769,7 +735,7 @@ namespace ProjectMantis
             WindowStartupLocation = WindowStartupLocation.Manual; Left = -20000; Top = -20000; ShowActivated = false; ShowInTaskbar = false;
             ContentRendered += delegate
             {
-                DispatcherTimer wait = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1.6) };
+                DispatcherTimer wait = new DispatcherTimer { Interval = TimeSpan.FromSeconds(Math.Max(0.5, App.SnapshotWait)) };
                 wait.Tick += delegate
                 {
                     wait.Stop();
@@ -847,11 +813,14 @@ namespace ProjectMantis
             try { return new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator); } catch { return false; }
         }
 
-        private static string FormatBytes(long value)
+        // Numbers follow the UI language, not the Windows locale ("25,6 GB" in Turkish, "25.6 GB" in English).
+        private System.Globalization.CultureInfo UiCulture { get { return language == "tr" ? new System.Globalization.CultureInfo("tr-TR") : new System.Globalization.CultureInfo("en-US"); } }
+
+        private string FormatBytes(long value)
         {
             string[] units = { "B", "KB", "MB", "GB", "TB" }; double n = value; int i = 0;
             while (n >= 1024 && i < units.Length - 1) { n /= 1024; i++; }
-            return n.ToString(i == 0 ? "0" : "0.##") + " " + units[i];
+            return n.ToString(i == 0 ? "0" : "0.##", UiCulture) + " " + units[i];
         }
     }
 }
