@@ -315,6 +315,8 @@ namespace ProjectMantis
                 b = PillButton(language == "tr" ? "Windows Güvenliği" : "Windows Security", ButtonKind.Ghost, async delegate { await ApplyFinding(f); }, Icons.ArrowUpRight, Theme.Info);
             else if (f.FixKind == FixKinds.ScanFile)
                 b = PillButton(language == "tr" ? "Defender ile tara" : "Scan with Defender", ButtonKind.Ghost, async delegate { await ScanWithDefender(f.FixPayload); }, Icons.Search, Theme.Info);
+            else if (f.FixKind == FixKinds.Navigate)
+                b = PillButton(language == "tr" ? "Güncellemeler'i aç" : "Open Updates", ButtonKind.Secondary, delegate { OpenPage(f.FixPayload); return Task.FromResult(0); }, Icons.ArrowRight, Theme.SectionUpdates);
             else if (f.FixKind == FixKinds.Reveal)
                 b = PillButton(language == "tr" ? "Konumu aç" : "Show file", ButtonKind.Ghost, async delegate { await ApplyFinding(f); }, Icons.Folder, Theme.Info);
             if (b == null) return null;

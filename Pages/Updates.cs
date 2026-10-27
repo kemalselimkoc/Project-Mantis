@@ -38,20 +38,21 @@ namespace ProjectMantis
             SetPage(page, "updates");
             RenderUpdates();
             // Opening the page is the request: the read-only scan starts once per session, then on demand.
-            if (wingetScan == null && !wingetScanning) StartUpdateScan();
+            if (wingetScan == null && !wingetScanning) StartUpdateScan(false);
         }
 
-        private void StartUpdateScan()
+        // force=false reuses a winget result younger than 10 minutes (e.g. from Check-Up); "Scan again" forces.
+        private void StartUpdateScan(bool force)
         {
-            ScanWinget();
+            ScanWinget(force);
             ScanWindowsUpdate();
         }
 
-        private async void ScanWinget()
+        private async void ScanWinget(bool force)
         {
             if (wingetScanning || updatingPackages) return;
             wingetScanning = true; RenderUpdates();
-            WingetScan scan = await Task.Run(() => WingetService.ListUpgrades());
+            WingetScan scan = await Task.Run(() => force ? WingetService.ListUpgrades() : WingetService.FreshOrScan(TimeSpan.FromMinutes(10)));
             // App Installer updates winget itself, so it always goes last.
             scan.Packages = scan.Packages.OrderBy(p => string.Equals(p.Id, "Microsoft.AppInstaller", StringComparison.OrdinalIgnoreCase) ? 1 : 0).ThenBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
             wingetScan = scan; wingetScanning = false;
@@ -87,7 +88,7 @@ namespace ProjectMantis
             }
             else
             {
-                Button rescan = PillButton(language == "tr" ? "Yeniden tara" : "Scan again", ButtonKind.Secondary, delegate { StartUpdateScan(); return Task.FromResult(0); }, Icons.Refresh, accent);
+                Button rescan = PillButton(language == "tr" ? "Yeniden tara" : "Scan again", ButtonKind.Secondary, delegate { StartUpdateScan(true); return Task.FromResult(0); }, Icons.Refresh, accent);
                 rescan.IsEnabled = !wingetScanning; rescan.Margin = new Thickness(0, 0, Theme.S2, 0); updatesActions.Children.Add(rescan);
                 if (pending.Count > 0)
                 {

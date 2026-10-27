@@ -47,7 +47,27 @@ namespace ProjectMantis
             return "winget.exe";
         }
 
+        private static readonly object scanLock = new object();
+        private static WingetScan lastScan;
+
+        // Shared between the Updates page and the Check-Up audit so winget is not asked twice in a row.
+        public static WingetScan LastScan { get { lock (scanLock) return lastScan; } }
+
+        public static WingetScan FreshOrScan(TimeSpan maxAge)
+        {
+            WingetScan cached = LastScan;
+            if (cached != null && !cached.Failed && DateTime.Now - cached.When < maxAge) return cached;
+            return ListUpgrades();
+        }
+
         public static WingetScan ListUpgrades()
+        {
+            WingetScan scan = ScanNow();
+            lock (scanLock) lastScan = scan;
+            return scan;
+        }
+
+        private static WingetScan ScanNow()
         {
             WingetScan scan = new WingetScan();
             CommandResult r = PowerTools.Exec(Exe(), "upgrade --include-unknown --accept-source-agreements --disable-interactivity", 120000, new UTF8Encoding(false));
