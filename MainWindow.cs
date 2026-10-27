@@ -48,6 +48,7 @@ namespace ProjectMantis
         private Gauge diskGauge;
         private TextBlock statusText;
         private Border statusDot;
+        private TextBlock crumbSection;
         private Border busyBar;
         private Shape maximizeIcon;
         private bool busy;
@@ -208,12 +209,21 @@ namespace ProjectMantis
             Grid g = new Grid { Margin = new Thickness(Theme.S4 + 2, 0, Theme.S2 + 2, 0) };
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             bar.Child = g;
             StackPanel state = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
-            statusDot = new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), Background = Theme.Brush(Theme.Success), Margin = new Thickness(0, 0, Theme.S2 + 2, 0) };
+            statusDot = new Border { Width = 7, Height = 7, CornerRadius = new CornerRadius(1), Background = Theme.Brush(Theme.Success), Margin = new Thickness(0, 0, Theme.S2 + 2, 0) };
             statusText = Label(T("ready"), Theme.Small, FontWeights.Medium, Theme.TextMuted);
             state.Children.Add(statusDot); state.Children.Add(statusText);
             g.Children.Add(state);
+
+            // Mono breadcrumb "MANTIS / <SECTION>" plus privilege, the instrument's readout line.
+            StackPanel crumb = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, Theme.S5, 0) };
+            crumb.Children.Add(new TextBlock { Text = "MANTIS  /  ", FontFamily = Theme.MonoFont, FontSize = 10.5, Foreground = Theme.Brush(Theme.TextFaint) });
+            crumbSection = new TextBlock { FontFamily = Theme.MonoFont, FontSize = 10.5, FontWeight = FontWeights.SemiBold, Foreground = Theme.Brush(Theme.AccentPrimary) };
+            crumb.Children.Add(crumbSection);
+            crumb.Children.Add(new TextBlock { Text = "   ·   " + (IsAdmin() ? "ADMIN" : "STD"), FontFamily = Theme.MonoFont, FontSize = 10.5, Foreground = Theme.Brush(IsAdmin() ? Theme.Success : Theme.Warning) });
+            Grid.SetColumn(crumb, 1); g.Children.Add(crumb);
 
             StackPanel buttons = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
             Shape unused;
@@ -221,7 +231,7 @@ namespace ProjectMantis
             Button max = IconButton(WindowState == WindowState.Maximized ? Icons.Restore : Icons.Maximize, "#1CFFFFFF", Theme.TextMuted, T("maximize"), ToggleMaximize, out maximizeIcon);
             Button close = IconButton(Icons.Close, Theme.Alpha(Theme.Danger, 0x38), Theme.Danger, T("close"), RequestClose, out unused);
             foreach (Button b in new[] { min, max, close }) { WindowChrome.SetIsHitTestVisibleInChrome(b, true); buttons.Children.Add(b); }
-            Grid.SetColumn(buttons, 1); g.Children.Add(buttons);
+            Grid.SetColumn(buttons, 2); g.Children.Add(buttons);
 
             // Thin indeterminate progress line shown along the bottom edge while a task is running.
             LinearGradientBrush sweep = new LinearGradientBrush { StartPoint = new Point(0, 0.5), EndPoint = new Point(1, 0.5), RelativeTransform = new TranslateTransform(-1, 0) };
@@ -229,20 +239,20 @@ namespace ProjectMantis
             sweep.GradientStops.Add(new GradientStop(Theme.ToColor(Theme.Warning), 0.5));
             sweep.GradientStops.Add(new GradientStop(Theme.ToColor(Theme.Alpha(Theme.Warning, 0)), 0.8));
             busyBar = new Border { Height = 2, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(Theme.S4, 0, Theme.S4, 1), CornerRadius = new CornerRadius(1), Background = sweep, Opacity = 0, IsHitTestVisible = false };
-            Grid.SetColumnSpan(busyBar, 2); g.Children.Add(busyBar);
+            Grid.SetColumnSpan(busyBar, 3); g.Children.Add(busyBar);
             return bar;
         }
 
         private Gauge MetricMini(string name, UniformGrid parent, bool inverse, string tooltip)
         {
-            Border b = new Border { Padding = new Thickness(9, 8, 9, 10), Margin = new Thickness(parent.Children.Count == 0 ? 0 : 3, 0, parent.Children.Count == 2 ? 0 : 3, 0), CornerRadius = new CornerRadius(Theme.RadiusSm + 1), Background = Theme.Brush(Theme.SurfaceRaised), BorderBrush = Theme.Brush(Theme.StrokeSubtle), BorderThickness = new Thickness(1), ToolTip = tooltip };
+            Border b = new Border { Padding = new Thickness(9, 8, 9, 10), Margin = new Thickness(parent.Children.Count == 0 ? 0 : 3, 0, parent.Children.Count == 2 ? 0 : 3, 0), CornerRadius = new CornerRadius(Theme.RadiusSm), Background = Theme.Brush(Theme.SurfaceRaised), BorderBrush = Theme.Brush(Theme.StrokeSubtle), BorderThickness = new Thickness(1), ToolTip = tooltip };
             StackPanel s = new StackPanel();
-            TextBlock caption = Label(name, 9, FontWeights.Bold, Theme.TextFaint); s.Children.Add(caption);
-            TextBlock value = Label("—", Theme.H3 - 1, FontWeights.SemiBold, Theme.TextPrimary); value.Margin = new Thickness(0, 2, 0, 0); Tabular(value); s.Children.Add(value);
+            TextBlock caption = new TextBlock { Text = name, FontFamily = Theme.MonoFont, FontSize = 9.5, Foreground = Theme.Brush(Theme.TextFaint) }; s.Children.Add(caption);
+            TextBlock value = Label("—", Theme.H3 + 1, FontWeights.SemiBold, Theme.TextPrimary); value.FontFamily = Theme.DisplayFont; value.Margin = new Thickness(0, 2, 0, 0); Tabular(value); s.Children.Add(value);
             Grid track = new Grid { Height = 3, Margin = new Thickness(0, 7, 0, 0) };
-            track.Children.Add(new Border { CornerRadius = new CornerRadius(1.5), Background = Theme.Brush(Theme.Alpha(Theme.TextPrimary, 0x14)) });
+            track.Children.Add(new Border { Background = Theme.Brush(Theme.Alpha(Theme.TextPrimary, 0x14)) });
             ScaleTransform scale = new ScaleTransform(0, 1);
-            Border fill = new Border { CornerRadius = new CornerRadius(1.5), Background = Theme.Brush(Theme.Success), RenderTransform = scale, RenderTransformOrigin = new Point(0, 0.5) };
+            Border fill = new Border { Background = Theme.Brush(Theme.Success), RenderTransform = scale, RenderTransformOrigin = new Point(0, 0.5) };
             track.Children.Add(fill); s.Children.Add(track);
             b.Child = s; parent.Children.Add(b);
             return new Gauge { Value = value, Scale = scale, Fill = fill, Inverse = inverse };
@@ -321,6 +331,12 @@ namespace ProjectMantis
         {
             currentPage = key;
             SelectNav(key);
+            if (crumbSection != null)
+            {
+                NavItem item = navItems.FirstOrDefault(n => n.Key == key);
+                crumbSection.Text = (item != null ? item.Text.Text : key).ToUpper(UiCulture);
+                crumbSection.Foreground = Theme.Brush(AccentFor(key));
+            }
             content.Children.Clear(); content.Children.Add(page);
             TranslateTransform slide = new TranslateTransform(0, 8);
             page.RenderTransform = slide;

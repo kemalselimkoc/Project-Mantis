@@ -25,7 +25,20 @@ namespace ProjectMantis
             this.size = size; this.thickness = thickness;
             Width = size; Height = size;
             Children.Add(new Ellipse { Stroke = Theme.Brush(Theme.Alpha(Theme.TextPrimary, 0x14)), StrokeThickness = thickness });
-            arc = new Path { Stroke = Theme.Brush(color), StrokeThickness = thickness, StrokeStartLineCap = PenLineCap.Round, StrokeEndLineCap = PenLineCap.Round };
+            // Large gauges get an instrument dial: 60 hairline ticks inside the track, longer every 30°.
+            if (size >= 100)
+            {
+                GeometryGroup ticks = new GeometryGroup();
+                double outer = size / 2 - thickness - 4, c = size / 2;
+                for (int i = 0; i < 60; i++)
+                {
+                    double a = i * Math.PI / 30, len = i % 5 == 0 ? 7 : 3;
+                    ticks.Children.Add(new LineGeometry(new Point(c + outer * Math.Sin(a), c - outer * Math.Cos(a)), new Point(c + (outer - len) * Math.Sin(a), c - (outer - len) * Math.Cos(a))));
+                }
+                ticks.Freeze();
+                Children.Add(new Path { Data = ticks, Stroke = Theme.Brush(Theme.Alpha(Theme.TextPrimary, 0x22)), StrokeThickness = 1 });
+            }
+            arc = new Path { Stroke = Theme.Brush(color), StrokeThickness = thickness, StrokeStartLineCap = PenLineCap.Flat, StrokeEndLineCap = PenLineCap.Flat };
             Children.Add(arc);
         }
 

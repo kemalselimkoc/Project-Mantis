@@ -285,7 +285,7 @@ namespace ProjectMantis
             string color = palette[hash % palette.Length];
             string letter = string.IsNullOrEmpty(name) ? "?" : name.Substring(0, 1).ToUpper(UiCulture);
             TextBlock t = Label(letter, Theme.H3, FontWeights.SemiBold, color); t.HorizontalAlignment = HorizontalAlignment.Center; t.VerticalAlignment = VerticalAlignment.Center;
-            return new Border { Width = 38, Height = 38, CornerRadius = new CornerRadius(11), Background = Theme.Brush(Theme.Alpha(color, 0x1C)), BorderBrush = Theme.Brush(Theme.Alpha(color, 0x2B)), BorderThickness = new Thickness(1), Child = t, VerticalAlignment = VerticalAlignment.Center };
+            return new Border { Width = 38, Height = 38, CornerRadius = new CornerRadius(Theme.RadiusSm + 1), Background = Theme.Brush(Theme.Alpha(color, 0x1C)), BorderBrush = Theme.Brush(Theme.Alpha(color, 0x2B)), BorderThickness = new Thickness(1), Child = t, VerticalAlignment = VerticalAlignment.Center };
         }
 
         private async Task UpdatePackages(List<WingetPackage> list)
