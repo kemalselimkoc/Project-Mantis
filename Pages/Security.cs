@@ -268,6 +268,7 @@ namespace ProjectMantis
                 elevate.Height = 34; elevate.MinWidth = 0;
                 securityBody.Children.Add(ListRow(Icons.Lock, language == "tr" ? "YÖNETİCİ" : "ADMIN", language == "tr" ? "Daha fazlası için yönetici olarak yeniden başlat" : "Restart as administrator to check more", language == "tr" ? "Bazı kontroller standart modda okunamadı ve atlandı; skor yalnızca okunabilenlere göre hesaplandı." : "Some checks cannot be read in standard mode and were skipped; the score only counts what could be read.", Theme.Warning, elevate));
             }
+            if (m.Id == "malware") securityBody.Children.Add(DeeperScanRow());
             foreach (Finding f in r.Issues.OrderByDescending(x => x.Severity)) securityBody.Children.Add(FindingRow(f));
             List<Finding> info = r.Findings.Where(f => !f.Passed && f.Severity == Severity.Info).ToList();
             foreach (Finding f in info) securityBody.Children.Add(FindingRow(f));
@@ -312,6 +313,8 @@ namespace ProjectMantis
                 b = PillButton(language == "tr" ? "Ayarı aç" : "Open setting", ButtonKind.Ghost, async delegate { await ApplyFinding(f); }, Icons.ArrowUpRight, Theme.Info);
             else if (f.FixKind == FixKinds.Defender)
                 b = PillButton(language == "tr" ? "Windows Güvenliği" : "Windows Security", ButtonKind.Ghost, async delegate { await ApplyFinding(f); }, Icons.ArrowUpRight, Theme.Info);
+            else if (f.FixKind == FixKinds.ScanFile)
+                b = PillButton(language == "tr" ? "Defender ile tara" : "Scan with Defender", ButtonKind.Ghost, async delegate { await ScanWithDefender(f.FixPayload); }, Icons.Search, Theme.Info);
             else if (f.FixKind == FixKinds.Reveal)
                 b = PillButton(language == "tr" ? "Konumu aç" : "Show file", ButtonKind.Ghost, async delegate { await ApplyFinding(f); }, Icons.Folder, Theme.Info);
             if (b == null) return null;
@@ -349,6 +352,38 @@ namespace ProjectMantis
             MessageBox.Show(ok ? (language == "tr" ? "Uygulandı. Modül yeniden kontrol ediliyor." : "Applied. Re-checking the module.") : (language == "tr" ? "Uygulanamadı: " : "Could not apply: ") + message, "Check-Up", MessageBoxButton.OK, ok ? MessageBoxImage.Information : MessageBoxImage.Warning);
             SecurityModule module = securityModules.FirstOrDefault(x => x.Id == f.ModuleId);
             if (module != null) await RunModules(new List<SecurityModule> { module });
+        }
+
+        // Full and custom Defender scans are separate, explicit choices (never part of Full Check-Up).
+        private Border DeeperScanRow()
+        {
+            StackPanel buttons = new StackPanel { Orientation = Orientation.Horizontal };
+            Button full = PillButton(language == "tr" ? "Tam tarama" : "Full scan", ButtonKind.Secondary, async delegate
+            {
+                if (MessageBox.Show(language == "tr" ? "Tam tarama tüm diskleri Windows Defender ile tarar ve bir saatten uzun sürebilir. Bu sırada bilgisayar yavaşlayabilir. Başlatılsın mı?" : "A full scan checks every drive with Windows Defender and can take more than an hour. The PC may feel slower meanwhile. Start it?", "Check-Up", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+                await ScanWithDefender(MalwareScanner.Full);
+            }, Icons.Shield, Theme.SectionSecurity);
+            full.Height = 34; full.MinWidth = 0;
+            Button folder = PillButton(language == "tr" ? "Klasör seç…" : "Pick folder…", ButtonKind.Ghost, async delegate
+            {
+                using (System.Windows.Forms.FolderBrowserDialog dlg = new System.Windows.Forms.FolderBrowserDialog { Description = language == "tr" ? "Windows Defender ile taranacak klasör" : "Folder to scan with Windows Defender" })
+                    if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK) await ScanWithDefender(dlg.SelectedPath);
+            }, Icons.Folder, Theme.Info);
+            folder.Height = 34; folder.MinWidth = 0; folder.Margin = new Thickness(0);
+            buttons.Children.Add(full); buttons.Children.Add(folder);
+            return ListRow(Icons.Search, language == "tr" ? "DAHA DERİN" : "DEEPER", language == "tr" ? "Tam veya özel klasör taraması" : "Full or custom folder scan", language == "tr" ? "Check-Up hızlı tarama yapar. Daha kapsamlı bir tarama için tüm diskleri ya da seçtiğin bir klasörü Defender ile tarat." : "Check-Up runs a quick scan. For a thorough check, scan every drive or a folder you pick with Defender.", Theme.Info, buttons);
+        }
+
+        private async Task ScanWithDefender(string target)
+        {
+            if (target != MalwareScanner.Full && !MalwareScanner.IsValidTarget(target))
+            {
+                MessageBox.Show(language == "tr" ? "Bu dosya veya klasör artık bulunamıyor." : "That file or folder can no longer be found.", "Check-Up", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            SecurityModule malware = securityModules.First(x => x.Id == "malware");
+            MalwareScanner.Mode = target;
+            await RunModules(new List<SecurityModule> { malware });
         }
 
         // ---------- Engine ----------

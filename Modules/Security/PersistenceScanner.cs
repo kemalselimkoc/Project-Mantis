@@ -338,7 +338,7 @@ namespace ProjectMantis
 
         // Authenticode check through PowerShell, which also understands catalog-signed Windows files.
         // Paths go through a temporary file, never through the command line.
-        private static Dictionary<string, SignatureInfo> Signatures(HashSet<string> paths, CancellationToken token)
+        internal static Dictionary<string, SignatureInfo> Signatures(HashSet<string> paths, CancellationToken token)
         {
             Dictionary<string, SignatureInfo> result = new Dictionary<string, SignatureInfo>(StringComparer.OrdinalIgnoreCase);
             List<string> existing = paths.Where(p => { try { return File.Exists(p); } catch { return false; } }).ToList();

@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading;
 
 namespace ProjectMantis
 {
@@ -36,7 +37,10 @@ namespace ProjectMantis
 
         // Runs a console tool without a window, reads stdout/stderr asynchronously (no pipe deadlock),
         // kills it on timeout and never throws: a missing tool becomes Started=false.
-        public static CommandResult Exec(string file, string args, int timeoutMs, Encoding encoding)
+        public static CommandResult Exec(string file, string args, int timeoutMs, Encoding encoding) { return Exec(file, args, timeoutMs, encoding, CancellationToken.None); }
+
+        // Cancellable variant for long scans: the process is killed as soon as the token is cancelled.
+        public static CommandResult Exec(string file, string args, int timeoutMs, Encoding encoding, CancellationToken token)
         {
             CommandResult result = new CommandResult();
             StringBuilder output = new StringBuilder(), error = new StringBuilder();
@@ -56,9 +60,12 @@ namespace ProjectMantis
                     if (!p.Start()) return result;
                     result.Started = true;
                     p.BeginOutputReadLine(); p.BeginErrorReadLine();
-                    if (!p.WaitForExit(timeoutMs))
+                    DateTime deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
+                    bool exited = false;
+                    while (!(exited = p.WaitForExit(250)) && DateTime.UtcNow < deadline && !token.IsCancellationRequested) { }
+                    if (!exited)
                     {
-                        result.TimedOut = true;
+                        result.TimedOut = !token.IsCancellationRequested;
                         try { p.Kill(); } catch { }
                     }
                     else
