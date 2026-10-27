@@ -312,6 +312,8 @@ namespace ProjectMantis
                 b = PillButton(language == "tr" ? "Ayarı aç" : "Open setting", ButtonKind.Ghost, async delegate { await ApplyFinding(f); }, Icons.ArrowUpRight, Theme.Info);
             else if (f.FixKind == FixKinds.Defender)
                 b = PillButton(language == "tr" ? "Windows Güvenliği" : "Windows Security", ButtonKind.Ghost, async delegate { await ApplyFinding(f); }, Icons.ArrowUpRight, Theme.Info);
+            else if (f.FixKind == FixKinds.Reveal)
+                b = PillButton(language == "tr" ? "Konumu aç" : "Show file", ButtonKind.Ghost, async delegate { await ApplyFinding(f); }, Icons.Folder, Theme.Info);
             if (b == null) return null;
             b.Height = 34; b.MinWidth = 0; b.Margin = new Thickness(0);
             if (f.FixKind == FixKinds.Command && f.RequiresAdmin && !IsAdmin()) b.ToolTip = language == "tr" ? "Yönetici izni gerekir" : "Needs administrator rights";
@@ -324,6 +326,11 @@ namespace ProjectMantis
             {
                 if (!SecurityFixes.OpenUri(string.IsNullOrEmpty(f.FixPayload) ? "windowsdefender:" : f.FixPayload))
                     MessageBox.Show(language == "tr" ? "İlgili Windows ekranı açılamadı." : "The Windows settings page could not be opened.", "Check-Up", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            if (f.FixKind == FixKinds.Reveal)
+            {
+                if (!SecurityFixes.Reveal(f.FixPayload)) MessageBox.Show(language == "tr" ? "Dosya artık bulunamıyor." : "The file can no longer be found.", "Check-Up", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
             if (f.FixKind != FixKinds.Command) return;

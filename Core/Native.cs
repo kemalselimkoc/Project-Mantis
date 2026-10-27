@@ -2,6 +2,7 @@
 // Source: https://github.com/kemalselimkoc/Project-Mantis
 // Copyright (c) 2026 kemalselimkoc. Licensed under the MIT License.
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -32,7 +33,78 @@ namespace ProjectMantis
         [DllImport("user32.dll")] public static extern bool UnregisterHotKey(IntPtr hwnd, int id);
         [DllImport("user32.dll")] public static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint flags);
         [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern bool GetMonitorInfo(IntPtr monitor, ref MonitorInfo info);
+        [DllImport("kernel32.dll", SetLastError = true)] public static extern IntPtr OpenProcess(uint access, bool inherit, int pid);
+        [DllImport("kernel32.dll", SetLastError = true)] public static extern bool CloseHandle(IntPtr handle);
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] public static extern bool QueryFullProcessImageName(IntPtr process, int flags, StringBuilder name, ref int size);
+        [DllImport("iphlpapi.dll", SetLastError = true)] public static extern uint GetExtendedTcpTable(IntPtr table, ref int size, bool sort, int family, int tableClass, uint reserved);
         public delegate bool EnumWindowsProc(IntPtr hwnd, IntPtr lParam);
+
+        // Executable path of another process without needing to open it fully (works for most non-protected processes).
+        public static string ProcessPath(int pid)
+        {
+            IntPtr h = OpenProcess(0x1000, false, pid);   // PROCESS_QUERY_LIMITED_INFORMATION
+            if (h == IntPtr.Zero) return null;
+            try
+            {
+                StringBuilder sb = new StringBuilder(1024); int size = sb.Capacity;
+                return QueryFullProcessImageName(h, 0, sb, ref size) ? sb.ToString(0, size) : null;
+            }
+            finally { CloseHandle(h); }
+        }
+
+        public sealed class TcpConnection { public int Pid; public System.Net.IPAddress Remote; public int RemotePort; }
+
+        // Established TCP connections (IPv4 and IPv6) with their owning process, from the numeric IP Helper
+        // table: no netstat text, so the state is never a localized word.
+        public static List<TcpConnection> EstablishedTcp()
+        {
+            List<TcpConnection> list = new List<TcpConnection>();
+            foreach (int family in new[] { 2, 23 })
+            {
+                int size = 0;
+                GetExtendedTcpTable(IntPtr.Zero, ref size, false, family, 5, 0);   // TCP_TABLE_OWNER_PID_ALL
+                if (size <= 0) continue;
+                IntPtr buffer = Marshal.AllocHGlobal(size);
+                try
+                {
+                    if (GetExtendedTcpTable(buffer, ref size, false, family, 5, 0) != 0) continue;
+                    int count = Marshal.ReadInt32(buffer);
+                    int rowSize = family == 2 ? 24 : 56;
+                    for (int i = 0; i < count; i++)
+                    {
+                        IntPtr row = IntPtr.Add(buffer, 4 + i * rowSize);
+                        int state, pid, port; byte[] addr;
+                        if (family == 2)
+                        {
+                            state = Marshal.ReadInt32(row); addr = BitConverter.GetBytes(Marshal.ReadInt32(row, 12));
+                            port = PortFrom(Marshal.ReadInt32(row, 16)); pid = Marshal.ReadInt32(row, 20);
+                        }
+                        else
+                        {
+                            addr = new byte[16]; Marshal.Copy(IntPtr.Add(row, 24), addr, 0, 16);
+                            port = PortFrom(Marshal.ReadInt32(row, 44)); state = Marshal.ReadInt32(row, 48); pid = Marshal.ReadInt32(row, 52);
+                        }
+                        if (state == 5) list.Add(new TcpConnection { Pid = pid, Remote = new System.Net.IPAddress(addr), RemotePort = port });   // MIB_TCP_STATE_ESTAB
+                    }
+                }
+                finally { Marshal.FreeHGlobal(buffer); }
+            }
+            return list;
+        }
+
+        private static int PortFrom(int raw) { return ((raw & 0xFF) << 8) | ((raw >> 8) & 0xFF); }
+
+        // Processes that own at least one visible, titled top-level window.
+        public static HashSet<int> PidsWithVisibleWindow()
+        {
+            HashSet<int> pids = new HashSet<int>();
+            EnumWindows(delegate(IntPtr hwnd, IntPtr p)
+            {
+                if (IsWindowVisible(hwnd) && GetWindowTextLength(hwnd) > 0) { uint pid; GetWindowThreadProcessId(hwnd, out pid); pids.Add((int)pid); }
+                return true;
+            }, IntPtr.Zero);
+            return pids;
+        }
         public static IntPtr GetWindowStyle(IntPtr hwnd) { return IntPtr.Size == 8 ? GetWindowLongPtr64(hwnd, -20) : GetWindowLongPtr32(hwnd, -20); }
         public static IntPtr SetWindowStyle(IntPtr hwnd, IntPtr value) { return IntPtr.Size == 8 ? SetWindowLongPtr64(hwnd, -20, value) : SetWindowLongPtr32(hwnd, -20, value); }
         [StructLayout(LayoutKind.Sequential)] public struct WindowRect { public int Left; public int Top; public int Right; public int Bottom; }

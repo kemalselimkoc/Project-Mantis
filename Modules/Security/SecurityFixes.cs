@@ -40,6 +40,18 @@ namespace ProjectMantis
             try { Process.Start(new ProcessStartInfo(uri) { UseShellExecute = true }); return true; } catch { return false; }
         }
 
+        // Shows a reported file in Explorer. Only an existing, fully qualified path is accepted.
+        public static bool Reveal(string path)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(path) || !Path.IsPathRooted(path) || !File.Exists(path)) return false;
+                Process.Start(new ProcessStartInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe"), "/select," + PowerTools.QuoteArg(Path.GetFullPath(path))) { UseShellExecute = false });
+                return true;
+            }
+            catch { return false; }
+        }
+
         private static void Log(string line)
         {
             try { Directory.CreateDirectory(Settings.DataDir); File.AppendAllText(Settings.LogPath, line + Environment.NewLine); } catch { }

@@ -18,6 +18,7 @@ namespace ProjectMantis
         public const string Command = "command";
         public const string OpenSettings = "open-settings";
         public const string Defender = "defender";
+        public const string Reveal = "reveal";       // opens Explorer with the file selected; changes nothing
     }
 
     internal sealed class Finding
@@ -119,7 +120,7 @@ namespace ProjectMantis
             return new List<SecurityModule>
             {
                 new SecurityModule { Id = "hardening", Run = HardeningAuditor.Run, NameTr = "Sağlamlaştırma Denetimi", NameEn = "Hardening Audit", DescTr = "Güvenlik Duvarı, Defender, UAC, BitLocker, SMBv1, RDP, Secure Boot ve daha fazlası.", DescEn = "Firewall, Defender, UAC, BitLocker, SMBv1, RDP, Secure Boot and more.", BusyTr = "Güvenlik ayarları denetleniyor…", BusyEn = "Auditing security settings…" },
-                new SecurityModule { Id = "persistence", NameTr = "Kalıcılık & Keylogger İzleri", NameEn = "Persistence & Keylogger Hunt", DescTr = "Başlangıç kayıtları, zamanlanmış görevler, servisler, WMI ve şüpheli süreçler. Hiçbir şey silinmez.", DescEn = "Autostart entries, scheduled tasks, services, WMI and suspicious processes. Nothing is deleted.", BusyTr = "Kalıcılık taranıyor…", BusyEn = "Scanning persistence…" },
+                new SecurityModule { Id = "persistence", Run = PersistenceScanner.Run, NameTr = "Kalıcılık & Keylogger İzleri", NameEn = "Persistence & Keylogger Hunt", DescTr = "Başlangıç kayıtları, zamanlanmış görevler, servisler, WMI ve şüpheli süreçler. Hiçbir şey silinmez.", DescEn = "Autostart entries, scheduled tasks, services, WMI and suspicious processes. Nothing is deleted.", BusyTr = "Kalıcılık taranıyor…", BusyEn = "Scanning persistence…" },
                 new SecurityModule { Id = "malware", NameTr = "Zararlı Yazılım Taraması", NameEn = "Malware Scan", DescTr = "Windows Defender durumu ve hızlı tarama; başlangıç, Temp ve İndirilenler'de imzasız dosyalar.", DescEn = "Windows Defender status and quick scan; unsigned files in startup, Temp and Downloads.", BusyTr = "Defender ile taranıyor…", BusyEn = "Scanning with Defender…" },
                 new SecurityModule { Id = "software", NameTr = "Yazılım Güncelliği", NameEn = "Software Vulnerabilities", DescTr = "Bekleyen Windows güncellemeleri ve eski kalmış uygulamalar.", DescEn = "Pending Windows updates and outdated apps.", BusyTr = "Güncellemeler denetleniyor…", BusyEn = "Checking for updates…" },
                 new SecurityModule { Id = "network", NameTr = "Yerel Ağ Taraması", NameEn = "Local Network Scan", DescTr = "Yalnızca bağlı olduğun yerel alt ağdaki cihazlar ve açık yaygın portlar. İnternete tarama yapılmaz.", DescEn = "Only devices and common open ports on the local subnet you are connected to. Nothing on the internet is scanned.", BusyTr = "Yerel ağ taranıyor…", BusyEn = "Scanning the local network…", InFullCheckByDefault = false, LocalNetworkOnly = true },
