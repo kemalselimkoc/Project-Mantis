@@ -92,6 +92,35 @@ namespace ProjectMantis
             return list;
         }
 
+        [DllImport("iphlpapi.dll")] public static extern int GetIpNetTable(IntPtr table, ref int size, bool sort);
+
+        // IPv4 neighbour (ARP) cache: IP -> MAC for devices this PC has talked to; numeric, never `arp -a` text.
+        public static Dictionary<string, string> ArpTable()
+        {
+            Dictionary<string, string> map = new Dictionary<string, string>();
+            int size = 0;
+            GetIpNetTable(IntPtr.Zero, ref size, false);
+            if (size <= 0) return map;
+            IntPtr buffer = Marshal.AllocHGlobal(size);
+            try
+            {
+                if (GetIpNetTable(buffer, ref size, false) != 0) return map;
+                int count = Marshal.ReadInt32(buffer);
+                for (int i = 0; i < count; i++)
+                {
+                    IntPtr row = IntPtr.Add(buffer, 4 + i * 24);   // MIB_IPNETROW
+                    int macLen = Marshal.ReadInt32(row, 4), type = Marshal.ReadInt32(row, 20);
+                    if (type == 2 || macLen < 6) continue;          // 2 = invalid entry
+                    byte[] mac = new byte[6]; Marshal.Copy(IntPtr.Add(row, 8), mac, 0, 6);
+                    if (mac[0] == 0xFF || (mac[0] | mac[1] | mac[2] | mac[3] | mac[4] | mac[5]) == 0) continue;
+                    string ip = new System.Net.IPAddress(BitConverter.GetBytes(Marshal.ReadInt32(row, 16))).ToString();
+                    map[ip] = BitConverter.ToString(mac).Replace('-', ':');
+                }
+            }
+            finally { Marshal.FreeHGlobal(buffer); }
+            return map;
+        }
+
         private static int PortFrom(int raw) { return ((raw & 0xFF) << 8) | ((raw >> 8) & 0xFF); }
 
         // Processes that own at least one visible, titled top-level window.
