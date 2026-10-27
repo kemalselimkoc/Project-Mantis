@@ -28,7 +28,7 @@ namespace ProjectMantis
         private sealed class NavItem
         {
             public string Key; public string Accent; public Action Show;
-            public Border Fill; public Border Indicator; public Shape IconPath; public TextBlock Text; public Border Badge;
+            public Border Fill; public Border Indicator; public Shape IconPath; public TextBlock Text; public Border Badge; public TextBlock Index;
         }
 
         private sealed class Gauge { public TextBlock Value; public ScaleTransform Scale; public Border Fill; public bool Inverse; }
@@ -124,8 +124,14 @@ namespace ProjectMantis
             Grid root = new Grid();
             root.Background = new LinearGradientBrush(Theme.ToColor(Theme.BgBase), Theme.ToColor(Theme.BgElevated), 28);
 
-            glowPrimary = new Border { Width = 760, Height = 760, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(-330, -380, 0, 0), Background = Theme.Glow(Theme.AccentPrimary, 0.13), IsHitTestVisible = false };
-            glowSecondary = new Border { Width = 820, Height = 820, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 0, -380, -430), Background = Theme.Glow(Theme.Info, 0.05), IsHitTestVisible = false };
+            // Instrument grid fading out toward the bottom, plus one dim section-tinted light behind the content.
+            Border grid = new Border { Background = Theme.Grid(), IsHitTestVisible = false };
+            LinearGradientBrush fade = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(0, 1) };
+            fade.GradientStops.Add(new GradientStop(Colors.Black, 0)); fade.GradientStops.Add(new GradientStop(Color.FromArgb(0x40, 0, 0, 0), 0.7)); fade.GradientStops.Add(new GradientStop(Colors.Transparent, 1));
+            grid.OpacityMask = fade;
+            root.Children.Add(grid);
+            glowPrimary = new Border { Width = 1100, Height = 900, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, -460, -360, 0), Background = Theme.Glow(Theme.AccentPrimary, 0.09), IsHitTestVisible = false };
+            glowSecondary = new Border { Width = 700, Height = 700, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(-380, 0, 0, -420), Background = Theme.Glow(Theme.SectionCleaner, 0.04), IsHitTestVisible = false };
             root.Children.Add(glowPrimary);
             root.Children.Add(glowSecondary);
 
@@ -149,7 +155,7 @@ namespace ProjectMantis
 
         private UIElement BuildSidebar()
         {
-            Border side = Glass(Theme.RadiusLg + 2); side.Background = Theme.LiveBrush(Theme.BgSidebar); side.Effect = Theme.Elevation(1);
+            Border side = Glass(Theme.RadiusLg); SetPanelFill(side, Theme.LiveBrush(Theme.BgSidebar)); SetPanelShape(side, Theme.Chamfer + 6, true); side.Effect = Theme.Elevation(1);
             Grid grid = new Grid { Margin = new Thickness(Theme.S4 + 2) };
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -263,6 +269,8 @@ namespace ProjectMantis
             Shape path; Viewbox v = Glyph(icon, 18, Theme.TextMuted, out path); item.IconPath = path; inner.Children.Add(v);
             item.Text = Label(title, Theme.Body, FontWeights.Normal, Theme.TextMuted); item.Text.Margin = new Thickness(Theme.S3, 0, 0, 0); item.Text.VerticalAlignment = VerticalAlignment.Center; inner.Children.Add(item.Text);
             row.Children.Add(inner);
+            item.Index = new TextBlock { Text = (navItems.Count + 1).ToString("00"), FontFamily = Theme.MonoFont, FontSize = 10, Foreground = Theme.Brush(Theme.TextFaint), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, Theme.S3, 0) };
+            row.Children.Add(item.Index);
             // Small count pill on the right (e.g. available updates); hidden until a page sets it.
             item.Badge = new Border { CornerRadius = new CornerRadius(8), Padding = new Thickness(7, 1, 7, 2), Margin = new Thickness(0, 0, Theme.S3, 0), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Background = Theme.Brush(Theme.Alpha(accent, 0x26)), Visibility = Visibility.Collapsed, Child = Label("", Theme.Micro - 0.5, FontWeights.SemiBold, accent) };
             Tabular((TextBlock)item.Badge.Child);
@@ -284,6 +292,7 @@ namespace ProjectMantis
                 {
                     ((TextBlock)n.Badge.Child).Text = text ?? "";
                     n.Badge.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
+                    n.Index.Visibility = string.IsNullOrEmpty(text) ? Visibility.Visible : Visibility.Collapsed;
                 }
         }
 
@@ -297,6 +306,7 @@ namespace ProjectMantis
                 n.IconPath.Stroke = Theme.Brush(active ? n.Accent : Theme.TextMuted);
                 n.Text.Foreground = Theme.Brush(active ? Theme.TextPrimary : Theme.TextMuted);
                 n.Text.FontWeight = active ? FontWeights.SemiBold : FontWeights.Normal;
+                n.Index.Foreground = Theme.Brush(active ? n.Accent : Theme.TextFaint);
             }
         }
 
@@ -325,7 +335,7 @@ namespace ProjectMantis
             RadialGradientBrush brush = glowPrimary == null ? null : glowPrimary.Background as RadialGradientBrush;
             if (brush == null) return;
             Color c = Theme.ToColor(accent);
-            double[] strengths = { 0.13, 0.13 * 0.35, 0 };
+            double[] strengths = { 0.09, 0.09 * 0.35, 0 };
             for (int i = 0; i < brush.GradientStops.Count && i < strengths.Length; i++)
                 brush.GradientStops[i].BeginAnimation(GradientStop.ColorProperty, new ColorAnimation(Color.FromArgb((byte)(255 * strengths[i]), c.R, c.G, c.B), Theme.Slow));
         }

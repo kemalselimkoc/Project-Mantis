@@ -127,7 +127,7 @@ namespace ProjectMantis
             LinearGradientBrush tint = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 1) };
             tint.GradientStops.Add(new GradientStop(Theme.ToColor(Theme.Mix(Theme.Surface, hasRun ? color : Theme.SectionSecurity, 0.08)), 0));
             tint.GradientStops.Add(new GradientStop(Theme.ToColor(Theme.Surface), 0.6));
-            card.Background = tint;
+            SetPanelFill(card, tint); SetPanelShape(card, Theme.Chamfer + 6, true);
 
             Grid g = new Grid();
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition());

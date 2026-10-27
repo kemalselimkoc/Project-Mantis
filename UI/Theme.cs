@@ -12,59 +12,64 @@ namespace ProjectMantis
     // Design tokens. Every color, spacing step, radius, type size and duration in the UI comes from here.
     internal static class Theme
     {
+        // "Organic precision": matte graphite instrument panels, hairline edges, one sharp mantis-lime accent,
+        // DIN-style display type and mono labels. The chamfered corner (Chamfer) is the signature shape.
+
         // Backgrounds
-        public const string BgBase = "#070A08";
-        public const string BgElevated = "#0D1510";
-        public const string BgSidebar = "#D90E1510";
+        public const string BgBase = "#050706";
+        public const string BgElevated = "#0A0E0C";
+        public const string BgSidebar = "#F00A0E0C";
+        public const string GridLine = "#0BFFFFFF";
 
-        // Surfaces (glass layers, from deepest to highest)
-        public const string SurfaceSunken = "#99090E0B";
-        public const string Surface = "#D9161D19";
-        public const string SurfaceHover = "#E81D2721";
-        public const string SurfaceRaised = "#17231B";
-        public const string Control = "#1C2721";
-        public const string ControlHover = "#26352C";
+        // Surfaces (matte panels, from deepest to highest)
+        public const string SurfaceSunken = "#C0070A09";
+        public const string Surface = "#F00F1412";
+        public const string SurfaceHover = "#F5151C19";
+        public const string SurfaceRaised = "#121816";
+        public const string Control = "#161D1A";
+        public const string ControlHover = "#1F2824";
 
-        // Strokes
-        public const string Stroke = "#2E75FF9B";
-        public const string StrokeStrong = "#5C75FF9B";
-        public const string StrokeSubtle = "#12FFFFFF";
-        public const string EdgeHighlight = "#3DFFFFFF";
+        // Strokes: neutral hairlines; the accent is reserved for state and focus
+        public const string Stroke = "#1CFFFFFF";
+        public const string StrokeStrong = "#3DB7F34A";
+        public const string StrokeSubtle = "#0FFFFFFF";
+        public const string EdgeHighlight = "#2EFFFFFF";
 
         // Text
-        public const string TextPrimary = "#F3F7F4";
-        public const string TextMuted = "#97A39A";
-        public const string TextFaint = "#5F6B63";
-        public const string OnAccent = "#06100A";
+        public const string TextPrimary = "#EDF2EA";
+        public const string TextMuted = "#8C978E";
+        public const string TextFaint = "#58625A";
+        public const string OnAccent = "#0A1203";
 
         // Semantic colors (one meaning, one color, everywhere)
-        public const string AccentPrimary = "#75FF9B";
-        public const string AccentSecondary = "#2AD66F";
-        public const string Info = "#76C8FF";
+        public const string AccentPrimary = "#B7F34A";     // mantis lime: brand, primary actions, focus
+        public const string AccentSecondary = "#9BDB2E";
+        public const string Info = "#67C6FF";
         public const string Success = "#75FF9B";
-        public const string Warning = "#FFD873";
-        public const string Danger = "#FF8E8E";
-        public const string Violet = "#C29CFF";
-        public const string Amber = "#FFB86B";
+        public const string Warning = "#FFD166";
+        public const string Danger = "#FF7A6B";
+        public const string Violet = "#B49BFF";
+        public const string Amber = "#FFAE57";
 
         // Section accents: same saturation/lightness family, one hue per area
         public const string SectionOverview = AccentPrimary;
-        public const string SectionCleaner = AccentPrimary;
+        public const string SectionCleaner = "#6FE8B4";
         public const string SectionTools = Info;
         public const string SectionUpdates = Violet;
         public const string SectionSecurity = Amber;
-        public const string SectionSettings = "#A9BBAF";
+        public const string SectionSettings = "#A3ADA5";
 
         // Spacing scale
         public const double S1 = 4, S2 = 8, S3 = 12, S4 = 16, S5 = 24, S6 = 32;
 
-        // Corner radii
-        public const double RadiusSm = 10, RadiusMd = 14, RadiusLg = 20, RadiusXl = 28;
+        // Corner radii: tight, machined corners; Chamfer is the 45° cut on a panel's top-right corner
+        public const double RadiusSm = 5, RadiusMd = 7, RadiusLg = 9, RadiusXl = 12, Chamfer = 14;
 
         // Type scale
-        public const double Display = 30, H2 = 20, H3 = 16, Body = 13, Small = 12, Micro = 11, Caption = 10;
+        public const double Display = 32, H2 = 20, H3 = 16, Body = 13, Small = 12, Micro = 11, Caption = 10;
         public static readonly FontFamily TextFont = new FontFamily("Segoe UI Variable Text, Segoe UI");
-        public static readonly FontFamily DisplayFont = new FontFamily("Segoe UI Variable Display, Segoe UI");
+        public static readonly FontFamily DisplayFont = new FontFamily("Bahnschrift, Segoe UI Variable Display, Segoe UI");
+        public static readonly FontFamily MonoFont = new FontFamily("Cascadia Mono, Consolas");
 
         // Motion
         public static readonly Duration Fast = new Duration(TimeSpan.FromMilliseconds(120));
@@ -123,6 +128,42 @@ namespace ProjectMantis
                 Color = Colors.Black, Direction = 270, RenderingBias = RenderingBias.Performance,
                 BlurRadius = level >= 2 ? 36 : 24, ShadowDepth = level >= 2 ? 10 : 5, Opacity = level >= 2 ? 0.48 : 0.32
             };
+        }
+
+        // Faint instrument grid behind the whole window (32px cells, hairline lines).
+        public static Brush Grid()
+        {
+            GeometryGroup lines = new GeometryGroup();
+            lines.Children.Add(new LineGeometry(new Point(0, 0), new Point(32, 0)));
+            lines.Children.Add(new LineGeometry(new Point(0, 0), new Point(0, 32)));
+            DrawingBrush b = new DrawingBrush(new GeometryDrawing(null, new Pen(Brush(GridLine), 1), lines))
+            {
+                TileMode = TileMode.Tile, Viewport = new Rect(0, 0, 32, 32), ViewportUnits = BrushMappingMode.Absolute,
+                Viewbox = new Rect(0, 0, 32, 32), ViewboxUnits = BrushMappingMode.Absolute
+            };
+            b.Freeze();
+            return b;
+        }
+
+        // Panel outline with a 45° chamfer on the top-right corner (and optionally bottom-left), radius r elsewhere.
+        public static Geometry ChamferShape(double w, double h, double cut, double r, bool bottomLeft)
+        {
+            cut = Math.Min(cut, Math.Min(w, h) / 3);
+            StreamGeometry g = new StreamGeometry();
+            using (StreamGeometryContext c = g.Open())
+            {
+                c.BeginFigure(new Point(r, 0), true, true);
+                c.LineTo(new Point(w - cut, 0), true, false);
+                c.LineTo(new Point(w, cut), true, false);
+                c.LineTo(new Point(w, h - r), true, false);
+                c.ArcTo(new Point(w - r, h), new Size(r, r), 0, false, SweepDirection.Clockwise, true, false);
+                if (bottomLeft) { c.LineTo(new Point(cut, h), true, false); c.LineTo(new Point(0, h - cut), true, false); }
+                else { c.LineTo(new Point(r, h), true, false); c.ArcTo(new Point(0, h - r), new Size(r, r), 0, false, SweepDirection.Clockwise, true, false); }
+                c.LineTo(new Point(0, r), true, false);
+                c.ArcTo(new Point(r, 0), new Size(r, r), 0, false, SweepDirection.Clockwise, true, false);
+            }
+            g.Freeze();
+            return g;
         }
 
         // Soft radial light used behind pages for depth (never as a hard-edged shape).

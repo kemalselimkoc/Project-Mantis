@@ -43,7 +43,10 @@ namespace ProjectMantis
         // Small uppercase label with open letter spacing (WPF has no tracking, so thin spaces are used).
         private TextBlock Eyebrow(string text, string color)
         {
-            return Label(Track(text), Theme.Caption, FontWeights.Bold, color);
+            // Mono glyphs are already evenly spaced; only word gaps are widened.
+            TextBlock t = Label(text.Replace(" ", " "), Theme.Caption + 0.5, FontWeights.SemiBold, color);
+            t.FontFamily = Theme.MonoFont;
+            return t;
         }
 
         private static string Track(string text)
@@ -80,22 +83,60 @@ namespace ProjectMantis
             Viewbox v = Glyph(g, icon, color); v.HorizontalAlignment = HorizontalAlignment.Center; v.VerticalAlignment = VerticalAlignment.Center;
             return new Border
             {
-                Width = box, Height = box, CornerRadius = new CornerRadius(Math.Round(box * 0.3)), Child = v,
+                Width = box, Height = box, CornerRadius = new CornerRadius(Math.Round(box * 0.18)), Child = v,
                 Background = Theme.Brush(Theme.Alpha(color, 0x1C)), BorderBrush = Theme.Brush(Theme.Alpha(color, 0x2B)), BorderThickness = new Thickness(1)
             };
         }
 
         // ---------- Surfaces ----------
 
+        // Paint state of a chamfered panel; the Border itself only provides layout (padding, child).
+        private sealed class PanelSkin { public Brush Fill; public SolidColorBrush Tint; public Brush Stroke; public double Cut, Radius; public bool BottomLeft; }
+
         private Border Glass(double radius) { return Glass(radius, new Thickness(1)); }
 
-        // Two-layer glass: translucent surface plus a stroke whose top edge carries a brighter 1px light.
+        // Matte instrument panel: surface fill and a hairline edge (brighter along the top) drawn as one
+        // chamfered shape, so the outline follows the cut corner; content is clipped to the same shape.
         private Border Glass(double radius, Thickness border)
         {
-            return new Border { Background = Theme.LiveBrush(Theme.Surface), BorderBrush = Theme.EdgeLight(Theme.Stroke), BorderThickness = border, CornerRadius = new CornerRadius(radius) };
+            PanelSkin skin = new PanelSkin { Tint = Theme.LiveBrush(Theme.Surface), Stroke = Theme.EdgeLight(Theme.Stroke), Radius = Math.Min(radius, Theme.RadiusLg), Cut = radius >= Theme.RadiusLg ? Theme.Chamfer : 8 };
+            skin.Fill = skin.Tint;
+            Border b = new Border { Tag = skin, BorderThickness = new Thickness(0), Padding = new Thickness(border.Left, border.Top, border.Right, border.Bottom) };
+            b.SizeChanged += delegate { PaintPanel(b); };
+            return b;
         }
 
-        // Elevated glass with a soft outer shadow; interactive cards lift and brighten on hover.
+        private static void PaintPanel(Border b)
+        {
+            PanelSkin s = b.Tag as PanelSkin;
+            double w = b.ActualWidth, h = b.ActualHeight;
+            if (s == null || w < 2 || h < 2) return;
+            Geometry outline = Theme.ChamferShape(w, h, s.Cut, s.Radius, s.BottomLeft);
+            Geometry edge = Theme.ChamferShape(w - 1, h - 1, s.Cut - 0.4, Math.Max(0, s.Radius - 0.5), s.BottomLeft).Clone();
+            edge.Transform = new TranslateTransform(0.5, 0.5);
+            DrawingGroup d = new DrawingGroup();
+            d.Children.Add(new GeometryDrawing(s.Fill, null, outline));
+            d.Children.Add(new GeometryDrawing(null, new Pen(s.Stroke, 1), edge));
+            b.Background = new DrawingBrush(d) { Stretch = Stretch.None, AlignmentX = AlignmentX.Left, AlignmentY = AlignmentY.Top, Viewbox = new Rect(0, 0, w, h), ViewboxUnits = BrushMappingMode.Absolute, Viewport = new Rect(0, 0, w, h), ViewportUnits = BrushMappingMode.Absolute };
+            b.Clip = outline;
+        }
+
+        // Replace a panel's fill (gradients, sidebar tone) while keeping its chamfered outline.
+        private static void SetPanelFill(Border b, Brush fill)
+        {
+            PanelSkin s = b.Tag as PanelSkin;
+            if (s == null) { b.Background = fill; return; }
+            s.Fill = fill; s.Tint = fill as SolidColorBrush; PaintPanel(b);
+        }
+
+        private static void SetPanelShape(Border b, double cut, bool bottomLeft)
+        {
+            PanelSkin s = b.Tag as PanelSkin;
+            if (s == null) return;
+            s.Cut = cut; s.BottomLeft = bottomLeft; PaintPanel(b);
+        }
+
+        // Elevated panel with a soft outer shadow; interactive cards lift and light their edge on hover.
         private Border Card(double radius, bool interactive)
         {
             Border b = Glass(radius); b.Effect = Theme.Elevation(1);
@@ -107,19 +148,19 @@ namespace ProjectMantis
         {
             b.Cursor = Cursors.Hand;
             TranslateTransform lift = new TranslateTransform(); b.RenderTransform = lift;
-            Brush restStroke = b.BorderBrush, hoverStroke = Theme.EdgeLight(Theme.StrokeStrong);
+            PanelSkin s = b.Tag as PanelSkin;
+            if (s == null) return;
+            Brush restStroke = s.Stroke, hoverStroke = Theme.EdgeLight(Theme.StrokeStrong);
             b.MouseEnter += delegate
             {
-                SolidColorBrush bg = b.Background as SolidColorBrush;
-                if (bg != null && !bg.IsFrozen) bg.BeginAnimation(SolidColorBrush.ColorProperty, new ColorAnimation(Theme.ToColor(Theme.SurfaceHover), Theme.Fast));
-                b.BorderBrush = hoverStroke;
+                if (s.Tint != null && !s.Tint.IsFrozen) s.Tint.BeginAnimation(SolidColorBrush.ColorProperty, new ColorAnimation(Theme.ToColor(Theme.SurfaceHover), Theme.Fast));
+                s.Stroke = hoverStroke; PaintPanel(b);
                 lift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(-2, Theme.Normal) { EasingFunction = Ease() });
             };
             b.MouseLeave += delegate
             {
-                SolidColorBrush bg = b.Background as SolidColorBrush;
-                if (bg != null && !bg.IsFrozen) bg.BeginAnimation(SolidColorBrush.ColorProperty, new ColorAnimation(Theme.ToColor(Theme.Surface), Theme.Normal));
-                b.BorderBrush = restStroke;
+                if (s.Tint != null && !s.Tint.IsFrozen) s.Tint.BeginAnimation(SolidColorBrush.ColorProperty, new ColorAnimation(Theme.ToColor(Theme.Surface), Theme.Normal));
+                s.Stroke = restStroke; PaintPanel(b);
                 lift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(0, Theme.Normal) { EasingFunction = Ease() });
             };
         }
@@ -249,7 +290,14 @@ namespace ProjectMantis
             Grid g = new Grid { Margin = new Thickness(0, 0, 0, Theme.S5) };
             g.ColumnDefinitions.Add(new ColumnDefinition()); g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             StackPanel left = new StackPanel();
-            if (!string.IsNullOrEmpty(eyebrow)) { TextBlock e = Eyebrow(eyebrow, eyebrowColor ?? Theme.AccentPrimary); e.Margin = new Thickness(1, 0, 0, Theme.S2); left.Children.Add(e); }
+            if (!string.IsNullOrEmpty(eyebrow))
+            {
+                // Short accent rule + mono label: the section's "instrument plate".
+                StackPanel eyeRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(1, 0, 0, Theme.S2) };
+                eyeRow.Children.Add(new Border { Width = 18, Height = 2, Background = Theme.Brush(eyebrowColor ?? Theme.AccentPrimary), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, Theme.S2, 0) });
+                eyeRow.Children.Add(Eyebrow(eyebrow, eyebrowColor ?? Theme.AccentPrimary));
+                left.Children.Add(eyeRow);
+            }
             left.Children.Add(Label(title, Theme.Display, FontWeights.SemiBold, Theme.TextPrimary));
             TextBlock s = Paragraph(subtitle, Theme.Body, Theme.TextMuted); s.Margin = new Thickness(1, Theme.S1 + 2, 0, 0); left.Children.Add(s);
             g.Children.Add(left);
@@ -320,9 +368,9 @@ namespace ProjectMantis
         {
             return new Border
             {
-                CornerRadius = new CornerRadius(9), Padding = new Thickness(9, 3, 9, 4), VerticalAlignment = VerticalAlignment.Center,
-                Background = Theme.Brush(Theme.Alpha(color, 0x1C)), BorderBrush = Theme.Brush(Theme.Alpha(color, 0x33)), BorderThickness = new Thickness(1),
-                Child = Label(text, Theme.Micro, FontWeights.SemiBold, color)
+                CornerRadius = new CornerRadius(3), Padding = new Thickness(8, 3, 8, 3), VerticalAlignment = VerticalAlignment.Center,
+                Background = Theme.Brush(Theme.Alpha(color, 0x18)), BorderBrush = Theme.Brush(Theme.Alpha(color, 0x40)), BorderThickness = new Thickness(1),
+                Child = new TextBlock { Text = text, FontFamily = Theme.MonoFont, FontSize = 10.5, FontWeight = FontWeights.Medium, Foreground = Theme.Brush(color), TextTrimming = TextTrimming.CharacterEllipsis }
             };
         }
 

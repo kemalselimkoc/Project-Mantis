@@ -3,6 +3,7 @@
 // Copyright (c) 2026 kemalselimkoc. Licensed under the MIT License.
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -34,7 +35,8 @@ namespace ProjectMantis
             Grid page = PageGrid();
             page.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             page.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            page.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            page.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            page.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             FrameworkElement header = Header(language == "tr" ? "GENEL BAKIŞ" : "OVERVIEW", Theme.SectionOverview, Greeting(), DashboardMood());
             StackPanel headText = ((Grid)header).Children[0] as StackPanel;
             dashMood = headText == null ? null : headText.Children[headText.Children.Count - 1] as TextBlock;
@@ -59,6 +61,26 @@ namespace ProjectMantis
             awake.Margin = new Thickness(half, half, 0, 0); Grid.SetColumn(awake, 1); Grid.SetRow(awake, 2); bento.Children.Add(awake);
 
             Grid.SetRow(bento, 2); page.Children.Add(bento);
+
+            // Lower row: recent activity + Check-Up. It takes whatever height the bento leaves, so a
+            // maximized window gets more content instead of stretched, emptier cards.
+            Grid lower = new Grid { Margin = new Thickness(0, Theme.S4, 0, 0) };
+            lower.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.5, GridUnitType.Star) });
+            lower.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 260 });
+            Border activity = ActivityCard(); activity.Margin = new Thickness(0, 0, half, 0); lower.Children.Add(activity);
+            Border checkup = CheckupCard(); checkup.Margin = new Thickness(half, 0, 0, 0); Grid.SetColumn(checkup, 1); lower.Children.Add(checkup);
+            Grid.SetRow(lower, 3); page.Children.Add(lower);
+            page.SizeChanged += delegate
+            {
+                double used = header.ActualHeight + header.Margin.Bottom + strip.ActualHeight + strip.Margin.Bottom;
+                double available = Math.Max(240, page.ActualHeight - used - 2);
+                double bentoHeight = Math.Max(240, Math.Min(400, available));
+                double rest = available - bentoHeight - Theme.S4;
+                bool showLower = rest >= 150;
+                bento.Height = showLower ? bentoHeight : available;
+                lower.Visibility = showLower ? Visibility.Visible : Visibility.Collapsed;
+                if (showLower) lower.Height = rest;
+            };
             SetPage(page, "dashboard");
             UpdateDashboardStates();
             if (hasMetrics) UpdateDashboardLive(lastMetrics, true);
@@ -179,7 +201,7 @@ namespace ProjectMantis
             LinearGradientBrush tint = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 1) };
             tint.GradientStops.Add(new GradientStop(Theme.ToColor(Theme.Mix(Theme.Surface, accent, 0.07)), 0));
             tint.GradientStops.Add(new GradientStop(Theme.ToColor(Theme.Surface), 0.55));
-            card.Background = tint;
+            SetPanelFill(card, tint); SetPanelShape(card, Theme.Chamfer + 6, true);
 
             Grid g = new Grid { ClipToBounds = false };
             g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -256,6 +278,74 @@ namespace ProjectMantis
             Grid.SetColumn(right, 2); g.Children.Add(right);
             card.Child = g;
             card.MouseLeftButtonUp += async delegate { if (!busy) await action(); };
+            return card;
+        }
+
+        // Recent operations from mantis.log, newest first, as a compact timeline.
+        private Border ActivityCard()
+        {
+            Border card = Card(Theme.RadiusLg, false); card.Padding = new Thickness(Theme.S5 - 4, Theme.S4, Theme.S5 - 4, Theme.S3);
+            Grid g = new Grid(); g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); g.RowDefinitions.Add(new RowDefinition());
+            g.Children.Add(Eyebrow(language == "tr" ? "SON ETKİNLİK" : "RECENT ACTIVITY", Theme.TextMuted));
+            StackPanel list = new StackPanel { Margin = new Thickness(0, Theme.S3, 0, 0) };
+            List<string[]> events = new List<string[]>();
+            try { if (System.IO.File.Exists(Settings.LogPath)) foreach (string line in System.IO.File.ReadAllLines(Settings.LogPath)) { string[] p = line.Split('|'); if (p.Length >= 3) events.Add(p); } } catch { }
+            events.Reverse();
+            foreach (string[] e in events.Take(12))
+            {
+                DateTime when; if (!DateTime.TryParse(e[1].Trim(), System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeLocal, out when)) continue;
+                list.Children.Add(ActivityRow(e[0].Trim(), e[2].Trim(), when));
+            }
+            if (list.Children.Count == 0) list.Children.Add(Paragraph(language == "tr" ? "Henüz bir işlem yapılmadı. Temizlik, güncelleme ve düzeltmeler burada listelenir." : "Nothing has run yet. Cleanups, updates and fixes will be listed here.", Theme.Small, Theme.TextFaint));
+            ScrollViewer sv = Scroll(list); sv.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden; Grid.SetRow(sv, 1); g.Children.Add(sv);
+            card.Child = g;
+            return card;
+        }
+
+        private FrameworkElement ActivityRow(string kind, string details, DateTime when)
+        {
+            Func<string, string> field = delegate(string key) { foreach (string f in details.Split(' ')) if (f.StartsWith(key + "=")) return f.Substring(key.Length + 1); return ""; };
+            string color, text;
+            long bytes; long.TryParse(field("bytes"), out bytes);
+            if (kind == "CLEAN") { color = Theme.SectionCleaner; text = (language == "tr" ? "Temizlik · " : "Cleanup · ") + FormatBytes(bytes) + (language == "tr" ? " kazanıldı" : " reclaimed"); }
+            else if (kind == "SCAN") { color = Theme.Violet; text = (language == "tr" ? "Tarama · " : "Scan · ") + FormatBytes(bytes) + (language == "tr" ? " kazanılabilir" : " reclaimable"); }
+            else if (kind == "UPDATE") { color = Theme.SectionUpdates; text = (language == "tr" ? "Güncelleme · " : "Update · ") + field("id") + " → " + field("to") + (field("result") == "Failed" ? (language == "tr" ? " (hata)" : " (failed)") : ""); }
+            else if (kind == "FIX") { color = Theme.SectionSecurity; text = (language == "tr" ? "Check-Up düzeltmesi · " : "Check-Up fix · ") + field("key") + (field("ok") == "True" ? "" : (language == "tr" ? " (uygulanamadı)" : " (not applied)")); }
+            else { color = Theme.TextMuted; text = kind; }
+            Grid row = new Grid { Margin = new Thickness(0, 0, 0, Theme.S2 + 2) };
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); row.ColumnDefinitions.Add(new ColumnDefinition()); row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            row.Children.Add(new Border { Width = 6, Height = 6, Background = Theme.Brush(color), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 1, Theme.S3, 0) });
+            TextBlock t = Label(text, Theme.Small, FontWeights.Normal, Theme.TextPrimary); Grid.SetColumn(t, 1); row.Children.Add(t);
+            TextBlock w = new TextBlock { Text = RelativeTime(when), FontFamily = Theme.MonoFont, FontSize = 10.5, Foreground = Theme.Brush(Theme.TextFaint), Margin = new Thickness(Theme.S3, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+            Grid.SetColumn(w, 2); row.Children.Add(w);
+            return row;
+        }
+
+        // Check-Up teaser: last score when available, otherwise an invitation to run it.
+        private Border CheckupCard()
+        {
+            string accent = Theme.SectionSecurity;
+            Border card = Card(Theme.RadiusLg, true); card.Padding = new Thickness(Theme.S5 - 4, Theme.S4, Theme.S5 - 4, Theme.S4);
+            bool hasRun = securityResults.Count > 0;
+            int score = hasRun ? SecurityScore.Compute(LatestFindings()) : 0;
+            Grid g = new Grid();
+            g.ColumnDefinitions.Add(new ColumnDefinition()); g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            StackPanel text = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+            text.Children.Add(Eyebrow("CHECK-UP", accent));
+            TextBlock title = Label(hasRun ? ScoreVerdict(score) : (language == "tr" ? "Güvenlik muayenesi" : "Security check-up"), Theme.H2, FontWeights.SemiBold, Theme.TextPrimary); title.Margin = new Thickness(0, Theme.S2, 0, Theme.S1); text.Children.Add(title);
+            TextBlock d = Paragraph(hasRun ? (language == "tr" ? "Son check-up " : "Last check-up ") + (lastCheckup.HasValue ? RelativeTime(lastCheckup.Value) : "") : (language == "tr" ? "Güvenlik Duvarı, Defender, kalıcılık ve zararlı yazılım kontrolleri; sonunda 0–100 skor." : "Firewall, Defender, persistence and malware checks, ending in a 0–100 score."), Theme.Small, Theme.TextMuted);
+            text.Children.Add(d);
+            StackPanel go = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, Theme.S3, 0, 0) };
+            go.Children.Add(Label(hasRun ? (language == "tr" ? "Ayrıntılar" : "Details") : (language == "tr" ? "Check-Up başlat" : "Start Check-Up"), Theme.Small, FontWeights.SemiBold, accent));
+            Viewbox arrow = Glyph(Icons.ArrowRight, 14, accent); arrow.Margin = new Thickness(Theme.S2 - 2, 1, 0, 0); go.Children.Add(arrow);
+            text.Children.Add(go);
+            g.Children.Add(text);
+            Ring ring = new Ring(74, 6, hasRun ? ScoreColor(score) : Theme.TextFaint);
+            TextBlock n = Label(hasRun ? score.ToString() : "—", Theme.H2, FontWeights.SemiBold, Theme.TextPrimary); Tabular(n); n.HorizontalAlignment = HorizontalAlignment.Center; n.VerticalAlignment = VerticalAlignment.Center; ring.Children.Add(n);
+            if (hasRun) ring.AnimateTo(score, 900);
+            ring.Margin = new Thickness(Theme.S4, 0, 0, 0); Grid.SetColumn(ring, 1); g.Children.Add(ring);
+            card.Child = g;
+            card.MouseLeftButtonUp += delegate { if (!busy) ShowSecurity(); };
             return card;
         }
 
