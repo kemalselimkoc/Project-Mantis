@@ -65,7 +65,7 @@ namespace ProjectMantis
 
         // ---------- Autostart sources ----------
 
-        private static IEnumerable<AutostartEntry> RunKeys()
+        internal static IEnumerable<AutostartEntry> RunKeys()
         {
             List<AutostartEntry> list = new List<AutostartEntry>();
             string[] paths = { @"Software\Microsoft\Windows\CurrentVersion\Run", @"Software\Microsoft\Windows\CurrentVersion\RunOnce", @"Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\Run" };
@@ -101,7 +101,7 @@ namespace ProjectMantis
             HashSet<string> off = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             try
             {
-                using (RegistryKey b = RegistryKey.OpenBaseKey(hive, view))
+                using (RegistryKey b = RegistryKey.OpenBaseKey(hive, RegistryView.Registry64))
                 using (RegistryKey k = b.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run" + (view == RegistryView.Registry32 ? "32" : "")))
                 {
                     if (k == null) return off;
@@ -116,7 +116,7 @@ namespace ProjectMantis
             return off;
         }
 
-        private static IEnumerable<AutostartEntry> StartupFolders()
+        internal static IEnumerable<AutostartEntry> StartupFolders()
         {
             List<AutostartEntry> list = new List<AutostartEntry>();
             foreach (Environment.SpecialFolder f in new[] { Environment.SpecialFolder.Startup, Environment.SpecialFolder.CommonStartup })

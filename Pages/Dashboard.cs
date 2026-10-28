@@ -311,6 +311,7 @@ namespace ProjectMantis
             else if (kind == "SCAN") { color = Theme.Violet; text = (language == "tr" ? "Tarama · " : "Scan · ") + FormatBytes(bytes) + (language == "tr" ? " kazanılabilir" : " reclaimable"); }
             else if (kind == "UPDATE") { color = Theme.SectionUpdates; text = (language == "tr" ? "Güncelleme · " : "Update · ") + field("id") + " → " + field("to") + (field("result") == "Failed" ? (language == "tr" ? " (hata)" : " (failed)") : ""); }
             else if (kind == "FIX") { color = Theme.SectionSecurity; text = (language == "tr" ? "Check-Up düzeltmesi · " : "Check-Up fix · ") + field("key") + (field("ok") == "True" ? "" : (language == "tr" ? " (uygulanamadı)" : " (not applied)")); }
+            else if (kind == "STARTUP") { int n = details.IndexOf("name="); color = Theme.SectionTools; text = (language == "tr" ? "Başlangıç · " : "Startup · ") + (n >= 0 ? details.Substring(n + 5) : "") + (field("ok") != "True" ? (language == "tr" ? " (değiştirilemedi)" : " (not changed)") : field("enabled") == "True" ? (language == "tr" ? " açıldı" : " enabled") : (language == "tr" ? " kapatıldı" : " disabled")); }
             else { color = Theme.TextMuted; text = kind; }
             Grid row = new Grid { Margin = new Thickness(0, 0, 0, Theme.S2 + 2) };
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); row.ColumnDefinitions.Add(new ColumnDefinition()); row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
