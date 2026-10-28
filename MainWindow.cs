@@ -364,7 +364,7 @@ namespace ProjectMantis
 
         internal void OpenPage(string key)
         {
-            if (key == "gallery") ShowGallery(); else if (key == "startup") ShowStartup(); else Navigate(key);
+            if (key == "gallery") ShowGallery(); else if (key == "startup") ShowStartup(); else if (key == "services") ShowServices(); else Navigate(key);
         }
 
         private string Greeting()
@@ -405,6 +405,7 @@ namespace ProjectMantis
             UniformGrid tools = AdaptiveGrid(250, 4);
             string c = Theme.SectionTools;
             tools.Children.Add(ToolTile(Icons.Power, language == "tr" ? "Başlangıç Yöneticisi" : "Startup Manager", language == "tr" ? "Açılışta çalışanları gör, gereksizleri kapat." : "See what runs at startup and switch off the extras.", c, delegate { ShowStartup(); return Task.FromResult(0); }));
+            tools.Children.Add(ToolTile(Icons.Sliders, language == "tr" ? "Servisler" : "Services", language == "tr" ? "Yazıcı, Bluetooth, Xbox, telemetri: güvenli aç/kapat." : "Printer, Bluetooth, Xbox, telemetry: safe on/off.", c, delegate { ShowServices(); return Task.FromResult(0); }));
             tools.Children.Add(ToolTile(Icons.Chip, language == "tr" ? "Belleği Rahatlat" : "Release Memory", language == "tr" ? "Boştaki çalışma kümelerini kırpar." : "Trims idle working sets.", c, async delegate { await RunMemoryOptimization(); }));
             tools.Children.Add(ToolTile(Icons.Bolt, language == "tr" ? "Odak / Oyun" : "Focus / Game", language == "tr" ? "Güç planını performansa alır." : "Switches power plan for performance.", c, async delegate { await ToggleBoost(); }));
             tools.Children.Add(ToolTile(Icons.Coffee, language == "tr" ? "Uyanık Tut" : "Keep Awake", language == "tr" ? "Render veya indirme bitene kadar uykuya geçmez." : "Prevents sleep during renders or downloads.", c, delegate { ToggleAwake(); return Task.FromResult(0); }));
