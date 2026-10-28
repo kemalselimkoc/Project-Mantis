@@ -24,6 +24,7 @@ namespace ProjectMantis
         private bool checkupRunning;
         private CancellationTokenSource checkupCancel;
         private DateTime? lastCheckup;
+        private string lastReport;
         private int shownScore = -1;
         private StackPanel securityActions;
         private StackPanel securityBody;
@@ -157,6 +158,16 @@ namespace ProjectMantis
                 text.Children.Add(counts);
                 TextBlock meta = Label((language == "tr" ? "Son check-up: " : "Last check-up: ") + (lastCheckup.HasValue ? RelativeTime(lastCheckup.Value) : "—") + "  ·  " + securityResults.Count + (language == "tr" ? " modül" : securityResults.Count == 1 ? " module" : " modules") + "  ·  " + (language == "tr" ? "Puan: yüksek −20, orta −8, düşük −3" : "Scoring: high −20, medium −8, low −3"), Theme.Micro, FontWeights.Normal, Theme.TextFaint);
                 meta.Margin = new Thickness(0, Theme.S3, 0, 0); text.Children.Add(meta);
+                if (lastReport != null)
+                {
+                    StackPanel reportActions = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, Theme.S3, 0, 0) };
+                    Button open = PillButton(language == "tr" ? "Raporu aç" : "Open report", ButtonKind.Secondary, delegate { OpenReport(lastReport); return Task.FromResult(0); }, Icons.FileText, Theme.SectionSecurity);
+                    open.Height = 34; open.MinWidth = 0;
+                    Button folder = PillButton(language == "tr" ? "Rapor klasörü" : "Report folder", ButtonKind.Ghost, delegate { OpenUrl(SecurityReport.Folder); return Task.FromResult(0); }, Icons.Folder, Theme.Info);
+                    folder.Height = 34; folder.MinWidth = 0;
+                    reportActions.Children.Add(open); reportActions.Children.Add(folder);
+                    text.Children.Add(reportActions);
+                }
             }
             Grid.SetColumn(text, 1); g.Children.Add(text);
             card.Child = g;
@@ -388,6 +399,16 @@ namespace ProjectMantis
             await RunModules(new List<SecurityModule> { malware });
         }
 
+        private void OpenReport(string path)
+        {
+            if (string.IsNullOrEmpty(path) || !System.IO.File.Exists(path))
+            {
+                MessageBox.Show(language == "tr" ? "Henüz bir Check-Up raporu yok. Önce Check-Up çalıştır." : "There is no Check-Up report yet. Run a Check-Up first.", "Check-Up", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            OpenUrl(path);
+        }
+
         // ---------- Engine ----------
 
         private async Task RunModules(List<SecurityModule> modules)
@@ -409,6 +430,10 @@ namespace ProjectMantis
             }
             runningModule = null; checkupRunning = false; lastCheckup = DateTime.Now;
             checkupCancel.Dispose(); checkupCancel = null;
+            // Every run leaves a local HTML/JSON/txt report of the latest result of each module.
+            Dictionary<string, ModuleResult> snapshot = new Dictionary<string, ModuleResult>(securityResults);
+            string lang = language;
+            lastReport = await Task.Run(() => SecurityReport.Write(securityModules, snapshot, lang));
             SetBusy(false, T("ready"));
             int score = SecurityScore.Compute(LatestFindings());
             statusText.Text = (language == "tr" ? "Check-Up tamam · skor " : "Check-Up done · score ") + score + "/100";

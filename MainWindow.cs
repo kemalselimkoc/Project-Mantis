@@ -425,6 +425,7 @@ namespace ProjectMantis
             list.Children.Add(SectionLabel(language == "tr" ? "GELİŞMİŞ" : "ADVANCED", false));
             list.Children.Add(SettingRow(Icons.ShieldCheck, T("restartAdmin"), language == "tr" ? "Windows Temp ve Prefetch erişimi için" : "For Windows Temp and Prefetch access", RestartAsAdmin));
             list.Children.Add(SettingRow(Icons.FileText, language == "tr" ? "Temizlik raporu" : "Cleanup report", language == "tr" ? "Son işlem kayıtlarını aç" : "Open the latest operation log", OpenLog));
+            list.Children.Add(SettingRow(Icons.ShieldCheck, language == "tr" ? "Son Check-Up raporu" : "Latest Check-Up report", language == "tr" ? "Yerelde saklanan HTML raporu aç" : "Open the locally stored HTML report", delegate { OpenReport(lastReport ?? SecurityReport.LatestHtml()); }));
             list.Children.Add(SectionLabel(language == "tr" ? "HAKKINDA" : "ABOUT", false));
             list.Children.Add(SettingRow(Icons.Code, "GitHub", "github.com/kemalselimkoc", delegate { OpenUrl("https://github.com/kemalselimkoc"); }));
             list.Children.Add(SettingRow(Icons.Coffee, "Buy Me a Coffee", "buymeacoffee.com/kemalselimkoc", delegate { OpenUrl("https://buymeacoffee.com/kemalselimkoc"); }));
