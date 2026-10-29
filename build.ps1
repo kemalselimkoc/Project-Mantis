@@ -1,8 +1,9 @@
 # Project Mantis build script — https://github.com/kemalselimkoc/Project-Mantis
 # Copyright (c) 2026 kemalselimkoc. MIT licensed.
+param([string]$OutDir)   # optional: build elsewhere, e.g. while the dist exe is running
 $ErrorActionPreference = 'Stop'
 $project = Split-Path -Parent $MyInvocation.MyCommand.Path
-$out = Join-Path $project 'dist'
+$out = if ($OutDir) { $OutDir } else { Join-Path $project 'dist' }
 $obj = Join-Path $project 'obj'
 New-Item -ItemType Directory -Force -Path $out, $obj | Out-Null
 
@@ -22,6 +23,10 @@ $refs = @(
     (Find-GacAssembly 'WindowsBase'),
     (Find-GacAssembly 'System.Xaml')
 )
+# Screen text (OCR) uses Windows.Media.Ocr straight from the WinRT metadata every Windows 10/11 ships with.
+$winmd = Join-Path $env:WINDIR 'System32\WinMetadata'
+$refs += (Join-Path $framework 'System.Runtime.dll')
+$refs += 'Foundation', 'Media', 'Graphics', 'Storage', 'Globalization' | ForEach-Object { Join-Path $winmd "Windows.$_.winmd" }
 
 $refArgs = $refs | ForEach-Object { "/reference:$_" }
 $resources = Join-Path $obj 'ProjectMantis.g.resources'

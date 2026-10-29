@@ -407,6 +407,7 @@ namespace ProjectMantis
             tools.Children.Add(ToolTile(Icons.Power, language == "tr" ? "Başlangıç Yöneticisi" : "Startup Manager", language == "tr" ? "Açılışta çalışanları gör, gereksizleri kapat." : "See what runs at startup and switch off the extras.", c, delegate { ShowStartup(); return Task.FromResult(0); }));
             tools.Children.Add(ToolTile(Icons.Sliders, language == "tr" ? "Servisler" : "Services", language == "tr" ? "Yazıcı, Bluetooth, Xbox, telemetri: güvenli aç/kapat." : "Printer, Bluetooth, Xbox, telemetry: safe on/off.", c, delegate { ShowServices(); return Task.FromResult(0); }));
             tools.Children.Add(ToolTile(Icons.Sparkle, language == "tr" ? "Windows'u Rahatlat" : "Ease Up Windows", language == "tr" ? "Bing aramasını kapat, uzantıları göster, klasik menü…" : "Turn off Bing search, show extensions, classic menu…", c, delegate { ShowTweaks(); return Task.FromResult(0); }));
+            tools.Children.Add(ToolTile(Icons.Search, language == "tr" ? "Ekrandan Yazı Al" : "Grab Text", language == "tr" ? "Alanı seç, yazı kopyalansın; istersen çevir. Her yerden: Ctrl+Shift+X" : "Select an area to copy its text; translate if you like. Anywhere: Ctrl+Shift+X", c, async delegate { await StartScreenText(true); }));
             tools.Children.Add(ToolTile(Icons.Network, language == "tr" ? "Hızlı Araçlar" : "Quick Tools", language == "tr" ? "IP bilgisi, büyük ve yinelenen dosyalar, hosts, uyku ayarları." : "IP info, large and duplicate files, hosts, sleep settings.", c, delegate { ShowQuickTools(); return Task.FromResult(0); }));
             tools.Children.Add(ToolTile(Icons.Chip, language == "tr" ? "Belleği Rahatlat" : "Release Memory", language == "tr" ? "Boştaki çalışma kümelerini kırpar." : "Trims idle working sets.", c, async delegate { await RunMemoryOptimization(); }));
             tools.Children.Add(ToolTile(Icons.Bolt, language == "tr" ? "Odak / Oyun" : "Focus / Game", language == "tr" ? "Güç planını performansa alır." : "Switches power plan for performance.", c, async delegate { await ToggleBoost(); }));
@@ -836,6 +837,7 @@ namespace ProjectMantis
             int border = Native.ColorRef(Theme.ToColor("#1E2B23")); Native.DwmSetWindowAttribute(hwnd, 34, ref border, sizeof(int));
             hwndSource = HwndSource.FromHwnd(hwnd); if (hwndSource != null) hwndSource.AddHook(WindowHook);
             Native.RegisterHotKey(hwnd, 0x4D41, 0x0002 | 0x0004, 0x4D);
+            Native.RegisterHotKey(hwnd, ScreenTextHotkey, 0x0002 | 0x0004 | 0x4000, 0x58);   // Ctrl+Shift+X, no auto-repeat
         }
 
         private IntPtr WindowHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -847,6 +849,11 @@ namespace ProjectMantis
                 statusText.Text = locked ? (language == "tr" ? "Video kilitli • Ctrl+Shift+M ile aç" : "Video locked • Ctrl+Shift+M to interact") : (language == "tr" ? "Video kontrolleri açık • Ctrl+Shift+M ile kilitle" : "Video controls enabled • Ctrl+Shift+M to lock");
                 handled = true;
             }
+            if (msg == 0x0312 && wParam.ToInt32() == ScreenTextHotkey)
+            {
+                Dispatcher.BeginInvoke(new Action(async delegate { await StartScreenText(false); }));
+                handled = true;
+            }
             return IntPtr.Zero;
         }
 
@@ -855,7 +862,7 @@ namespace ProjectMantis
             if (boostActive && !string.IsNullOrWhiteSpace(lastPowerScheme)) PowerTools.SetScheme(lastPowerScheme);
             if (keepAwake) PowerTools.KeepAwake(false);
             OverlayManager.Restore();
-            try { Native.UnregisterHotKey(new WindowInteropHelper(this).Handle, 0x4D41); } catch { }
+            try { Native.UnregisterHotKey(new WindowInteropHelper(this).Handle, 0x4D41); Native.UnregisterHotKey(new WindowInteropHelper(this).Handle, ScreenTextHotkey); } catch { }
             if (hwndSource != null) hwndSource.RemoveHook(WindowHook);
             if (trayIcon != null) { trayIcon.Visible = false; trayIcon.Dispose(); }
         }

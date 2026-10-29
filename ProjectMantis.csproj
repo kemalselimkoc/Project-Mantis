@@ -17,6 +17,13 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="System.Runtime" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="Windows.Foundation"><HintPath>$(WINDIR)\System32\WinMetadata\Windows.Foundation.winmd</HintPath><Private>False</Private></Reference>
+    <Reference Include="Windows.Media"><HintPath>$(WINDIR)\System32\WinMetadata\Windows.Media.winmd</HintPath><Private>False</Private></Reference>
+    <Reference Include="Windows.Graphics"><HintPath>$(WINDIR)\System32\WinMetadata\Windows.Graphics.winmd</HintPath><Private>False</Private></Reference>
+    <Reference Include="Windows.Storage"><HintPath>$(WINDIR)\System32\WinMetadata\Windows.Storage.winmd</HintPath><Private>False</Private></Reference>
+    <Reference Include="Windows.Globalization"><HintPath>$(WINDIR)\System32\WinMetadata\Windows.Globalization.winmd</HintPath><Private>False</Private></Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="obj\**;dist\**;release\**" />
