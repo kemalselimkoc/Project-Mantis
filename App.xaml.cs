@@ -14,6 +14,8 @@ namespace ProjectMantis
         // Session-only language from --lang=tr|en (used for screenshots); never written to settings.ini.
         internal static string LanguageOverride;
         internal static double SnapshotWait = 1.6;
+        // Set by --self-test / --snapshot / --run so unattended developer runs never block on a dialog.
+        internal static bool DevAutomation;
 
         internal static void Log(string message)
         {
@@ -29,7 +31,11 @@ namespace ProjectMantis
                 App app = new App();
                 if (args != null)
                     foreach (string arg in args)
+                    {
                         if (arg == "--lang=en" || arg == "--lang=tr") LanguageOverride = arg.Substring(7);
+                        if (arg == "--self-test" || arg.StartsWith("--snapshot=", StringComparison.OrdinalIgnoreCase) || arg.StartsWith("--run=", StringComparison.OrdinalIgnoreCase)) DevAutomation = true;
+                    }
+                if (!DevAutomation && !Terms.EnsureAccepted()) { Log("Terms declined"); Environment.Exit(0); }
                 MainWindow window = new MainWindow();
                 Log("MainWindow constructed");
                 if (args != null && Array.IndexOf(args, "--self-test") >= 0)

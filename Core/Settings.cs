@@ -26,6 +26,7 @@ namespace ProjectMantis
         public bool TrayNoticeShown;
         public bool MinimizeOnMinimize;
         public string CheckupModules;     // comma-separated module ids for Full Check-Up; null = defaults
+        public string TermsAccepted;      // version of the terms notice the user accepted (see Terms.cs)
         public static string DataDir { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ProjectMantis"); } }
         public static string LogPath { get { return Path.Combine(DataDir, "mantis.log"); } }
         private static string FilePath { get { return Path.Combine(DataDir, "settings.ini"); } }
@@ -43,6 +44,7 @@ namespace ProjectMantis
                     else if (pair[0] == "trayNotice") s.TrayNoticeShown = pair[1] == "1";
                     else if (pair[0] == "minimizeToTray") s.MinimizeOnMinimize = pair[1] == "1";
                     else if (pair[0] == "checkupModules") s.CheckupModules = pair[1];
+                    else if (pair[0] == "termsAccepted") s.TermsAccepted = pair[1];
                 }
             }
             catch { }
@@ -55,6 +57,7 @@ namespace ProjectMantis
                 Directory.CreateDirectory(DataDir);
                 List<string> lines = new List<string> { "language=" + Language, "close=" + CloseBehavior, "trayNotice=" + (TrayNoticeShown ? "1" : "0"), "minimizeToTray=" + (MinimizeOnMinimize ? "1" : "0") };
                 if (CheckupModules != null) lines.Add("checkupModules=" + CheckupModules);
+                if (TermsAccepted != null) lines.Add("termsAccepted=" + TermsAccepted);
                 File.WriteAllLines(FilePath, lines);
             }
             catch { }

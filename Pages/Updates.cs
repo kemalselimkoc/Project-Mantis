@@ -296,8 +296,8 @@ namespace ProjectMantis
             if (list.Count > 12) names += "\n•  …" + (list.Count - 12) + (language == "tr" ? " uygulama daha" : " more");
             string body = (language == "tr" ? "Şu uygulamalar winget ile güncellenecek:\n\n" : "These apps will be updated with winget:\n\n") + names + "\n\n" +
                 (language == "tr"
-                    ? "• Kurulum sessizdir; paket lisansı ve kaynak sözleşmeleri senin adına kabul edilir.\n• Bazı uygulamalar yönetici onayı (UAC) isteyebilir veya güncelleme sırasında kapanabilir.\n• Geri almak için uygulamanın eski sürümünü yeniden kurman gerekir.\n\nDevam edilsin mi?"
-                    : "• Installs are silent; package licences and source agreements are accepted on your behalf.\n• Some apps may ask for administrator approval (UAC) or close while updating.\n• To roll back, reinstall the app's older version.\n\nContinue?");
+                    ? "• Kurulum sessizdir. \"Evet\" dersen her uygulamanın kendi yayıncı lisansını ve winget kaynak sözleşmesini kabul etmiş olursun; Mantis bunları yalnızca senin bu onayınla winget'e iletir.\n• Bazı uygulamalar yönetici onayı (UAC) isteyebilir veya güncelleme sırasında kapanabilir.\n• Geri almak için uygulamanın eski sürümünü yeniden kurman gerekir.\n\nDevam edilsin mi?"
+                    : "• Installs are silent. By choosing \"Yes\" you accept each app's own publisher licence and the winget source agreements; Mantis passes that acceptance to winget only with this confirmation.\n• Some apps may ask for administrator approval (UAC) or close while updating.\n• To roll back, reinstall the app's older version.\n\nContinue?");
             if (MessageBox.Show(body, T("updates"), MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
 
             updatingPackages = true; stopUpdates = false;

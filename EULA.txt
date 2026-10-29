@@ -1,17 +1,52 @@
 PROJECT MANTIS - END USER NOTICE
 Copyright (c) 2026 kemalselimkoc
+Version 2 (2026-10-29), applies to Project Mantis v1.4 and later
 
+1. LICENSE AND NO WARRANTY
 Project Mantis is free, open-source utility software distributed under the MIT
-License in LICENSE. Support payments are voluntary and do not purchase a
-service, priority support, performance guarantee, or warranty.
+License in LICENSE. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+KIND, EXPRESS OR IMPLIED. TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE
+AUTHOR IS NOT LIABLE FOR ANY DATA LOSS, SYSTEM MALFUNCTION, LOST PROFITS OR
+OTHER DAMAGES ARISING FROM USE OF THE SOFTWARE. Nothing in this notice limits
+liability that cannot be limited by law, or mandatory consumer rights in your
+country. Support payments are voluntary gifts and do not purchase a service,
+priority support, performance guarantee, or warranty.
 
-The software deletes files only from its documented cache/temp allowlist.
-Locked or inaccessible items are skipped. Even so, cleanup and optimization
-software can behave differently across Windows installations. Review the scan
-result, keep backups of important work, and close Adobe applications before
-cleaning their caches. The software is provided "as is" without warranties to
-the extent permitted by law. Mandatory consumer rights are not excluded.
+2. YOUR RESPONSIBILITY
+Use Mantis only on computers you own or are authorized to administer. Every
+change is shown first and applied only after you confirm, and most changes can
+be undone from inside the app. Even so, Windows installations differ: keep
+backups of important work and, where possible, create a System Restore point
+before changing services, startup items, registry-based tweaks, the hosts file,
+power settings or security settings.
 
+3. CLEANUP AND FILES
+Cleanup deletes files only from its documented cache/temp allowlist. Locked or
+inaccessible items are skipped. Close Adobe applications before cleaning their
+caches. The disk tools send files to the Recycle Bin, never delete them
+permanently.
+
+4. SECURITY CHECK-UP
+The Security Check-Up is an advisory audit, not an antivirus or a guarantee of
+security. It does not delete or quarantine files; it reports findings and
+directs you to Microsoft Defender. A clean result does not mean a system is
+free of threats.
+
+5. LOCAL NETWORK SCAN
+The network scan only contacts devices on the local subnet your computer is
+connected to and never scans internet hosts. Scanning networks without
+permission may be unlawful. Run it only on networks you own or have explicit
+permission to test. Mantis asks you to confirm this before each session's scan.
+
+6. THIRD-PARTY SOFTWARE AND SERVICES
+App updates are performed by Windows' own winget tool. Software installed or
+updated this way is licensed to you by its publisher; confirming an update
+means you accept those publishers' licenses and the winget source agreements.
+The optional public-IP lookup (api.ipify.org) and translation (the Google
+Translate website, opened in your browser) are used only when you click, under
+those services' own terms. Mantis is not affiliated with these providers.
+
+7. OTHER FEATURES
 Memory optimization trims process working sets; Windows may reload data later.
 Game Mode changes the active Windows power plan and attempts to restore it.
 Audio Balance changes the per-channel volume exposed by the active Windows
@@ -22,9 +57,18 @@ browser Picture-in-Picture window or media player. It does not inject code into,
 read memory from, hook, automate, or modify games. Compatibility with every
 game or third-party anti-cheat system cannot be guaranteed. Stop using overlays
 if a game's rules prohibit them or the game reports a conflict.
+Grab Text reads text from the screen offline. Respect copyright and the privacy
+of others when capturing or translating content you do not own.
 
-Project Mantis runs locally. It does not upload cleanup data, application lists,
-or usage telemetry. GitHub and Buy Me a Coffee buttons open external websites.
+8. PRIVACY
+Project Mantis runs locally. It collects no telemetry and sends no personal
+data to the author. See PRIVACY.md for every network connection it can make.
+
+9. TRADEMARKS
+Microsoft, Windows, Microsoft Defender, BitLocker, Xbox and Bing are trademarks
+of the Microsoft group of companies; Google and Google Translate are trademarks
+of Google LLC. Project Mantis is independent and not affiliated with, endorsed
+or sponsored by them.
 
 Publisher: kemalselimkoc
 Contact: kemalselimkoc@gmail.com
@@ -32,9 +76,13 @@ Project: https://github.com/kemalselimkoc/Project-Mantis
 Support: https://buymeacoffee.com/kemalselimkoc
 
 TURKCE OZET
-Project Mantis ucretsiz ve acik kaynakli bir Windows yardimci uygulamasidir.
-Temizlik islemleri belgelenmis gecici dosya/cache konumlariyla sinirlidir.
-Onemli dosyalarinizi yedekleyin ve Adobe cache temizliginden once ilgili
-uygulamalari kapatin. Ghost Overlay oyunlara kod enjekte etmez veya oyun
-bellegini okumaz; yine de her oyunun ve anti-cheat sisteminin kurallari farkli
-olabileceginden mutlak uyumluluk garantisi verilmez.
+Project Mantis ucretsiz, acik kaynakli (MIT) bir Windows yardimci uygulamasidir
+ve "oldugu gibi", garantisiz sunulur. Yasalarin izin verdigi olcude gelistirici
+veri kaybi veya diger zararlardan sorumlu degildir; zorunlu tuketici haklariniz
+saklidir. Yalnizca size ait ya da yonetmeye yetkili oldugunuz bilgisayarlarda
+kullanin, degisiklikten once yedek alin. Guvenlik Check-Up'i antivirus degildir,
+dosya silmez. Yerel ag taramasini yalnizca size ait ya da izin aldiginiz aglarda
+calistirin; izinsiz tarama yasa disi olabilir. winget ile kurulan yazilimlar
+kendi yayincilarinin lisansina tabidir. Google Translate ve api.ipify.org
+yalnizca siz tikladiginizda ve kendi kosullariyla kullanilir. Mantis telemetri
+toplamaz. Microsoft ile baglantili degildir.

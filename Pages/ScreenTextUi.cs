@@ -15,7 +15,7 @@ using System.Windows.Media.Imaging;
 namespace ProjectMantis
 {
     // Screen text tool: Ctrl+Shift+X (or the Tools tile) → drag a region → text is read offline and copied.
-    // Translation is a separate, explicit click that sends the text to Google Translate.
+    // Translation is a separate, explicit click that opens the Google Translate website in the browser.
     public partial class MainWindow
     {
         internal const int ScreenTextHotkey = 0x4F43;
@@ -106,7 +106,7 @@ namespace ProjectMantis
             dialog.ResizeMode = ResizeMode.CanResize; dialog.MinWidth = 560; dialog.MinHeight = 420;
             if (!IsVisible) { dialog.Owner = null; dialog.WindowStartupLocation = WindowStartupLocation.CenterScreen; dialog.Topmost = true; }   // invoked from the tray
             Grid root = new Grid { Margin = new Thickness(Theme.S4) };
-            for (int i = 0; i < 6; i++) root.RowDefinitions.Add(new RowDefinition { Height = i == 1 || i == 4 ? new GridLength(1, GridUnitType.Star) : GridLength.Auto });
+            for (int i = 0; i < 6; i++) root.RowDefinitions.Add(new RowDefinition { Height = i == 1 ? new GridLength(1, GridUnitType.Star) : GridLength.Auto });
 
             TextBlock status = Paragraph(language == "tr" ? "Okunuyor…" : "Reading…", Theme.Small, Theme.TextMuted);
             status.Margin = new Thickness(0, 0, 0, Theme.S2); root.Children.Add(status);
@@ -116,18 +116,15 @@ namespace ProjectMantis
             Grid.SetRow(ocrLangs, 2); root.Children.Add(ocrLangs);
 
             StackPanel translateBar = new StackPanel { Margin = new Thickness(0, Theme.S3, 0, Theme.S2) };
-            translateBar.Children.Add(Paragraph(language == "tr" ? "ÇEVİR  ·  dile tıkla. Çeviri için metin Google Translate'e gönderilir; okuma kısmı tamamen çevrimdışıdır." : "TRANSLATE  ·  click a language. The text is sent to Google Translate for this; reading itself is fully offline.", Theme.Small, Theme.TextFaint));
+            translateBar.Children.Add(Paragraph(language == "tr" ? "ÇEVİR  ·  dile tıkla: Google Translate web sitesi tarayıcında açılır, metin oraya senin isteğinle gider. Mantis hiçbir çeviri servisine kendisi bağlanmaz; okuma tamamen çevrimdışıdır." : "TRANSLATE  ·  click a language: the Google Translate website opens in your browser and the text goes there at your request. Mantis itself never connects to a translation service; reading is fully offline.", Theme.Small, Theme.TextFaint));
             WrapPanel targets = new WrapPanel { Margin = new Thickness(0, Theme.S1, 0, 0) }; translateBar.Children.Add(targets);
             Grid.SetRow(translateBar, 3); root.Children.Add(translateBar);
-            TextBox translated = TextArea(true); translated.Visibility = Visibility.Collapsed; Grid.SetRow(translated, 4); root.Children.Add(translated);
 
             StackPanel actions = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, Theme.S3, 0, 0) };
             Button again = PillButton(language == "tr" ? "Yeni alan" : "New area", ButtonKind.Ghost, async delegate { dialog.Close(); await StartScreenText(true); }, null, Theme.SectionTools);
-            Button copyT = PillButton(language == "tr" ? "Çeviriyi kopyala" : "Copy translation", ButtonKind.Secondary, delegate { Copy(translated.Text, status); return Task.FromResult(0); }, null, Theme.SectionTools);
-            copyT.Visibility = Visibility.Collapsed; copyT.Margin = new Thickness(Theme.S2, 0, 0, 0);
             Button copy = PillButton(language == "tr" ? "Metni kopyala" : "Copy text", ButtonKind.Primary, delegate { Copy(source.Text, status); return Task.FromResult(0); }, Icons.Check, Theme.SectionTools);
             copy.Margin = new Thickness(Theme.S2, 0, 0, 0);
-            actions.Children.Add(again); actions.Children.Add(copyT); actions.Children.Add(copy);
+            actions.Children.Add(again); actions.Children.Add(copy);
             Grid.SetRow(actions, 5); root.Children.Add(actions);
             dialog.Content = root;
 
@@ -152,15 +149,16 @@ namespace ProjectMantis
             foreach (string t in TranslateTargets)
             {
                 string target = t;
-                Button b = PillButton(LanguageName(target), ButtonKind.Secondary, async delegate
+                Button b = PillButton(LanguageName(target), ButtonKind.Secondary, delegate
                 {
-                    if (source.Text.Trim().Length == 0) return;
-                    status.Text = language == "tr" ? "Çevriliyor…" : "Translating…";
-                    string error = null, text = source.Text;
-                    string result = await Task.Run(() => ScreenText.Translate(text, target, out error));
-                    if (result == null) { status.Text = (language == "tr" ? "Çevrilemedi: " : "Could not translate: ") + (error == "offline" ? (language == "tr" ? "internet bağlantısı yok" : "no internet connection") : error); return; }
-                    translated.Text = result; translated.Visibility = Visibility.Visible; copyT.Visibility = Visibility.Visible;
-                    status.Text = (language == "tr" ? "Çevrildi: " : "Translated: ") + LanguageName(target);
+                    if (source.Text.Trim().Length == 0) return Task.FromResult(0);
+                    Copy(source.Text, null);
+                    string url = ScreenText.TranslateUrl(source.Text, target);
+                    OpenUrl(url ?? ScreenText.TranslateHome(target));
+                    status.Text = url != null
+                        ? (language == "tr" ? "Google Translate tarayıcında açıldı (" + LanguageName(target) + "). Metin ayrıca panoda." : "Google Translate opened in your browser (" + LanguageName(target) + "). The text is also on the clipboard.")
+                        : (language == "tr" ? "Metin bağlantı için çok uzun: Google Translate açıldı, panodaki metni yapıştır (Ctrl+V)." : "Text is too long for a link: Google Translate opened, paste the text from the clipboard (Ctrl+V).");
+                    return Task.FromResult(0);
                 }, Icons.Globe, Theme.SectionTools);
                 b.Height = 30; b.MinWidth = 0; b.Margin = new Thickness(0, 0, Theme.S1 + 2, Theme.S1 + 2);
                 targets.Children.Add(b);

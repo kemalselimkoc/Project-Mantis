@@ -41,9 +41,17 @@ Mantis starts in standard-user mode. Use **Restart as administrator** inside Set
 
 ## Privacy
 
-Mantis works locally and contains no telemetry or analytics. Settings and the
-operation log stay under `%LOCALAPPDATA%\ProjectMantis`. The GitHub and Buy Me a
-Coffee buttons only open the listed external pages.
+Mantis works locally and contains no telemetry or analytics. Settings, the
+operation log and Check-Up reports stay under `%LOCALAPPDATA%\ProjectMantis`.
+Internet is used only for actions you start (winget updates, the optional public
+IP lookup, opening Google Translate in your browser). See [PRIVACY.md](PRIVACY.md).
+
+## Responsible use
+
+- Use the local network scan only on networks you own or are allowed to test.
+- The Security Check-Up is advisory and is not an antivirus; it never deletes files.
+- Back up important data and create a System Restore point before changing system settings.
+- Software updated through winget is licensed to you by its own publisher.
 
 ## Safety notes
 
@@ -59,6 +67,11 @@ Coffee buttons only open the listed external pages.
 Copyright © 2026 **kemalselimkoc**. Original source code is available under the
 [MIT License](LICENSE). See [EULA.txt](EULA.txt) for the end-user notice and
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for platform attribution.
+
+The software is provided "as is", without warranty of any kind. Project Mantis
+is an independent project and is not affiliated with, endorsed by or sponsored
+by Microsoft. Windows, Microsoft Defender and related names are trademarks of
+the Microsoft group of companies.
 
 - GitHub: https://github.com/kemalselimkoc
 - Support: https://buymeacoffee.com/kemalselimkoc

@@ -39,47 +39,20 @@ namespace ProjectMantis
             return null;
         }
 
-        // Translation runs only on an explicit click: the text is sent to Google Translate's public endpoint.
-        // Long text goes in chunks so each request stays well under URL length limits.
-        public static string Translate(string text, string target, out string error)
+        // Mantis never calls a translation API itself: it opens the public Google Translate website in the
+        // user's browser, so the service is used by the user under Google's own terms. Returns null when the
+        // text is too long for a link; the caller then opens the site empty and the user pastes it.
+        public static string TranslateUrl(string text, string target)
         {
-            error = null;
-            if (string.IsNullOrWhiteSpace(text)) return "";
-            if (!PowerTools.IsSafeToken(target)) { error = "bad language"; return null; }
-            try
-            {
-                ServicePointManager.SecurityProtocol |= (SecurityProtocolType)3072;
-                StringBuilder all = new StringBuilder();
-                foreach (string chunk in Chunks(text, 1500))
-                {
-                    string url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&dt=t&tl=" + target + "&q=" + Uri.EscapeDataString(chunk);
-                    HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
-                    req.Timeout = 12000; req.UserAgent = "Mozilla/5.0 ProjectMantis/" + AppInfo.Version;
-                    string json;
-                    using (WebResponse r = req.GetResponse()) using (StreamReader sr = new StreamReader(r.GetResponseStream(), Encoding.UTF8)) json = sr.ReadToEnd();
-                    object[] root = new JavaScriptSerializer { MaxJsonLength = int.MaxValue }.DeserializeObject(json) as object[];
-                    object[] parts = root != null && root.Length > 0 ? root[0] as object[] : null;
-                    if (parts == null) throw new InvalidDataException("unexpected response");
-                    foreach (object p in parts) { object[] seg = p as object[]; if (seg != null && seg.Length > 0 && seg[0] is string) all.Append((string)seg[0]); }
-                }
-                return all.ToString();
-            }
-            catch (WebException ex) { error = ex.Status == WebExceptionStatus.ProtocolError ? "service refused (" + ((HttpWebResponse)ex.Response).StatusCode + ")" : "offline"; }
-            catch (Exception ex) { error = ex.Message; }
-            return null;
+            if (!PowerTools.IsSafeToken(target)) return null;
+            string url = "https://translate.google.com/?sl=auto&tl=" + target + "&op=translate";
+            string q = Uri.EscapeDataString(text ?? "");
+            return q.Length <= 6000 ? url + "&text=" + q : null;
         }
 
-        private static IEnumerable<string> Chunks(string text, int max)
+        public static string TranslateHome(string target)
         {
-            StringBuilder cur = new StringBuilder();
-            foreach (string line in text.Replace("\r\n", "\n").Split('\n'))
-            {
-                if (cur.Length > 0 && cur.Length + line.Length + 1 > max) { yield return cur.ToString(); cur.Clear(); }
-                if (line.Length > max) { for (int i = 0; i < line.Length; i += max) yield return line.Substring(i, Math.Min(max, line.Length - i)); continue; }
-                if (cur.Length > 0) cur.Append('\n');
-                cur.Append(line);
-            }
-            if (cur.Length > 0) yield return cur.ToString();
+            return "https://translate.google.com/?sl=auto&op=translate" + (PowerTools.IsSafeToken(target) ? "&tl=" + target : "");
         }
     }
 

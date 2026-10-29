@@ -22,6 +22,7 @@ namespace ProjectMantis
         private HashSet<string> checkupSelection;
         private string runningModule;
         private bool checkupRunning;
+        private bool networkScanConfirmed;
         private CancellationTokenSource checkupCancel;
         private DateTime? lastCheckup;
         private string lastReport;
@@ -415,6 +416,17 @@ namespace ProjectMantis
         {
             modules = modules.Where(m => m.Run != null).ToList();
             if (busy || checkupRunning || modules.Count == 0) return;
+            // Probing devices is only lawful on a network the user owns or may test, so ask once per session.
+            if (modules.Any(m => m.Id == "network") && !networkScanConfirmed && !App.DevAutomation)
+            {
+                MessageBoxResult answer = MessageBox.Show(language == "tr"
+                    ? "Yerel ağ taraması, bağlı olduğun alt ağdaki cihazlara bağlantı denemesi yapar.\n\nBunu yalnızca sana ait ya da taramak için izin aldığın bir ağda çalıştır (ev ağın gibi). İş yeri, okul, otel, kafe veya ortak Wi-Fi ağlarında izinsiz tarama birçok ülkede yasak olabilir ve ağ kurallarını ihlal eder.\n\nBu ağ sana ait mi ya da taramak için iznin var mı?"
+                    : "The local network scan tries to connect to devices on the subnet you are on.\n\nOnly run it on a network you own or are allowed to test (such as your home network). Scanning work, school, hotel, café or shared Wi-Fi networks without permission may be illegal in many countries and breaks network rules.\n\nDo you own this network or have permission to scan it?",
+                    "Project Mantis", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+                if (answer != MessageBoxResult.Yes) modules = modules.Where(m => m.Id != "network").ToList();
+                else networkScanConfirmed = true;
+                if (modules.Count == 0) return;
+            }
             checkupRunning = true; checkupCancel = new CancellationTokenSource();
             CancellationToken token = checkupCancel.Token;
             for (int i = 0; i < modules.Count; i++)

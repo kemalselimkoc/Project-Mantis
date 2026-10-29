@@ -17,6 +17,7 @@ Copy-Item (Join-Path $project 'README.md') (Join-Path $stage 'README.md')
 Copy-Item (Join-Path $project 'LICENSE') (Join-Path $stage 'LICENSE')
 Copy-Item (Join-Path $project 'EULA.txt') (Join-Path $stage 'EULA.txt')
 Copy-Item (Join-Path $project 'THIRD_PARTY_NOTICES.md') (Join-Path $stage 'THIRD_PARTY_NOTICES.md')
+Copy-Item (Join-Path $project 'PRIVACY.md') (Join-Path $stage 'PRIVACY.md')
 if (Test-Path $zip) { Remove-Item $zip -Force }
 Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip -CompressionLevel Optimal
 Get-FileHash $zip -Algorithm SHA256 | Format-List
