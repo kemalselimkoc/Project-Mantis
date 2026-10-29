@@ -121,7 +121,7 @@ namespace ProjectMantis
             StackPanel info = new StackPanel { VerticalAlignment = VerticalAlignment.Center, MinWidth = 150 };
             info.Children.Add(Eyebrow(language == "tr" ? "AÇIK KALMA" : "UPTIME", Theme.TextFaint));
             dashUptime = Label(FormatUptime(SystemMonitor.Uptime()), Theme.H3, FontWeights.SemiBold, Theme.TextPrimary); dashUptime.Margin = new Thickness(0, 3, 0, Theme.S2); Tabular(dashUptime); info.Children.Add(dashUptime);
-            info.Children.Add(Label(Environment.MachineName + "  ·  " + SystemMonitor.OsLabel(), Theme.Micro, FontWeights.Normal, Theme.TextMuted));
+            info.Children.Add(Label((App.DevAutomation ? "DESKTOP-PC" : Environment.MachineName) + "  ·  " + SystemMonitor.OsLabel(), Theme.Micro, FontWeights.Normal, Theme.TextMuted));
             Grid infoWrap = new Grid(); infoWrap.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); infoWrap.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             infoWrap.Children.Add(divider); Grid.SetColumn(info, 1); infoWrap.Children.Add(info);
             Grid.SetColumn(infoWrap, 4); g.Children.Add(infoWrap);

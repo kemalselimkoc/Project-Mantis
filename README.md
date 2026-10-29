@@ -1,78 +1,118 @@
+<div align="center">
+
+<img src="assets/mantis-logo.png" width="96" alt="Project Mantis logo">
+
 # Project Mantis
 
-**Project Mantis** is a lightweight, local-first Windows care utility by
-[kemalselimkoc](https://github.com/kemalselimkoc), with a Turkish/English glass interface.
+**A local-first Windows care and security check-up tool. One small exe, no telemetry, every change asks first.**
 
-[Download the latest release](https://github.com/kemalselimkoc/Project-Mantis/releases/latest) ·
-[Support development](https://buymeacoffee.com/kemalselimkoc)
+[![Build](https://github.com/kemalselimkoc/Project-Mantis/actions/workflows/build.yml/badge.svg)](https://github.com/kemalselimkoc/Project-Mantis/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/v/release/kemalselimkoc/Project-Mantis?color=B7F34A&labelColor=0A0E0C)](https://github.com/kemalselimkoc/Project-Mantis/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/kemalselimkoc/Project-Mantis/total?color=B7F34A&labelColor=0A0E0C)](https://github.com/kemalselimkoc/Project-Mantis/releases)
+[![License: MIT](https://img.shields.io/github/license/kemalselimkoc/Project-Mantis?color=B7F34A&labelColor=0A0E0C)](LICENSE)
+![Windows 10 | 11](https://img.shields.io/badge/Windows-10%20%7C%2011-B7F34A?labelColor=0A0E0C)
 
-## Install for regular users
+[**Download**](https://github.com/kemalselimkoc/Project-Mantis/releases/latest) · [Changelog](CHANGELOG.md) · [Privacy](PRIVACY.md) · [Support development](https://buymeacoffee.com/kemalselimkoc)
 
-1. Download `ProjectMantis-Setup-v1.3.1.exe` from the latest GitHub Release.
-2. Run it: read and accept the license agreement, pick the install folder and shortcuts, press **Install**.
-3. Setup is per-user (no administrator rights) and Mantis appears under **Settings → Apps**, where it can be uninstalled.
+<img src="docs/images/dashboard.png" alt="Project Mantis overview" width="900">
 
-Prefer not to install? Download `Project-Mantis-v1.3.1-portable.zip`, extract it and run `ProjectMantis.exe`.
+</div>
 
-No Python, Node.js, .NET SDK, or separate runtime download is required on a
-current Windows 10/11 installation. Windows may show a SmartScreen reputation
-warning for an unsigned community build; verify the SHA-256 value shown on the
-GitHub Release before running it.
+## Why Mantis
 
-## What it does
+- **Asks before it acts.** Every fix, toggle and update shows what it will do and waits for your confirmation; tweaks and toggles can be switched back.
+- **Nothing runs in the background.** No services, no scheduled scans, no telemetry. Everything happens when you click.
+- **Tiny and self-contained.** A single ~2.6 MB exe built on the .NET Framework 4.8 that ships with Windows. No runtime, no SDK, no installer bloat.
+- **Defensive only.** It audits your own PC and your own local network. It never deletes or quarantines files; it explains findings and points you to Microsoft Defender.
+- **Turkish and English** interface.
 
-- Scans and cleans user/Windows temp locations, DirectX shader cache, crash reports, and known Adobe After Effects / Premiere Pro media-cache folders.
-- Detects running Adobe processes and skips Adobe caches while they are in use.
-- Trims idle process working sets so Windows can reuse memory. It does not disable the page file or purge critical system memory.
-- Toggles the High Performance power plan and restores the previous plan when toggled off or when Mantis exits.
-- Keeps the PC awake during long renders/downloads.
-- Flushes DNS cache.
-- Adjusts the default Windows output's left and right channel levels independently through the built-in Core Audio API, with no driver or audio capture.
-- Ghost Overlay accepts compact browser Picture-in-Picture windows and supported media players while excluding full-size browser windows. It keeps the video always on top, click-through, and optionally translucent. `Ctrl+Shift+M` toggles video interaction; **Release Active** removes the overlay completely.
-- Optional launch-at-login, per-user and easy to disable.
-- Stores settings and a small operation log locally under `%LOCALAPPDATA%\ProjectMantis`.
+## Features
+
+### Security Check-Up
+
+<img src="docs/images/security.png" alt="Security Check-Up" width="900">
+
+A 0–100 health score built from five modules you can run together or one by one:
+
+| Module | What it checks |
+| --- | --- |
+| **Hardening Audit** | Firewall, Defender, UAC, BitLocker, SMBv1, RDP, Secure Boot and more, with guided fixes you confirm one by one |
+| **Persistence & Keylogger Hunt** | Autostart entries, scheduled tasks, services, WMI subscriptions and suspicious processes |
+| **Malware Scan** | Defender status and quick scan, plus unsigned files in startup, Temp and Downloads |
+| **Software Vulnerabilities** | Pending Windows updates and outdated apps |
+| **Local Network Scan** | Devices and common open ports on the subnet you are connected to (asks first; your own network only) |
+
+Each run ends with an HTML report stored locally.
+
+### Updates
+
+Finds outdated apps with `winget` and shows Windows Update status. Update one app or all of them, always after a confirmation.
+
+### Cleaner
+
+Allowlist-based cleanup of temp folders, DirectX shader cache, crash reports and Adobe media caches. Adobe caches are skipped while Adobe apps are running. Scan first, then clean.
+
+### Tools
+
+<img src="docs/images/tools.png" alt="Tools" width="900">
+
+- **Startup Manager:** see what starts with Windows and switch the extras off, the same way Task Manager does.
+- **Services:** a short allowlist of safe-to-disable services (printer, fax, Xbox, telemetry, Bluetooth…) with exact restore.
+- **Ease Up Windows:** turn off Bing results in Start search, show file extensions, open Explorer on This PC, classic right-click menu, hide Widgets/Task View and more. Every tweak remembers the previous value.
+- **Grab Text** (`Ctrl+Shift+X`): select any area of the screen and copy its text, recognised offline by Windows' built-in OCR. Translation opens Google Translate in your browser only if you click.
+- **Quick Tools:** network info, large and duplicate file finder (sends to Recycle Bin), hosts file editor with backups, display/sleep timeouts.
+- **Release Memory, Game Mode, Keep Awake, Flush DNS, Ghost Overlay, Audio Balance.**
+
+<img src="docs/images/tweaks.png" alt="Ease Up Windows" width="900">
+
+## Install
+
+1. Download **`ProjectMantis-Setup-v1.4.0.exe`** from the [latest release](https://github.com/kemalselimkoc/Project-Mantis/releases/latest).
+2. Run it, accept the license agreement, pick the folder and shortcuts, press **Install**.
+3. Setup is per-user (no administrator rights). Mantis appears in **Settings → Apps**, where it can be uninstalled.
+
+<img src="docs/images/setup.png" alt="Setup wizard" width="640">
+
+Prefer not to install? Download `Project-Mantis-v1.4.0-portable.zip`, extract it and run `ProjectMantis.exe`.
+
+The build is not code-signed yet, so Windows SmartScreen may show a warning. Compare the file's SHA-256 with the value on the release page (`Get-FileHash .\ProjectMantis-Setup-v1.4.0.exe`). Signing is planned; see [SIGNING.md](SIGNING.md).
+
+Mantis starts in standard-user mode. Checks and fixes that need administrator rights show a **Restart as administrator** button.
 
 ## Build from source
 
-Run `install.ps1` from PowerShell. It builds `dist\ProjectMantis-v1.3.1.exe` using the Windows .NET Framework compiler and creates a desktop shortcut. No network download is required.
+Requires only Windows 10/11; no Visual Studio or .NET SDK.
 
-Closing Mantis asks once whether the close button should exit or minimize to the system tray. The choice can be changed later in Settings. The tray icon can restore or fully exit the app.
+```powershell
+git clone https://github.com/kemalselimkoc/Project-Mantis.git
+cd Project-Mantis
+.\build.ps1          # builds dist\ProjectMantis-v<version>.exe with the Framework csc.exe
+.\install.ps1        # optional: build, accept the license, create a desktop shortcut
+```
 
-Mantis starts in standard-user mode. Use **Restart as administrator** inside Settings only when you want access to protected Windows Temp and Prefetch files. Locked files are skipped.
+Every push is built and self-tested by [GitHub Actions](.github/workflows/build.yml).
 
 ## Privacy
 
-Mantis works locally and contains no telemetry or analytics. Settings, the
-operation log and Check-Up reports stay under `%LOCALAPPDATA%\ProjectMantis`.
-Internet is used only for actions you start (winget updates, the optional public
-IP lookup, opening Google Translate in your browser). See [PRIVACY.md](PRIVACY.md).
+Mantis has no telemetry, analytics or account. Settings, the activity log and Check-Up reports stay under `%LOCALAPPDATA%\ProjectMantis`. The internet is used only for actions you start: winget updates, the optional public-IP lookup and opening Google Translate in your browser. Details in [PRIVACY.md](PRIVACY.md).
 
 ## Responsible use
 
-- Use the local network scan only on networks you own or are allowed to test.
-- The Security Check-Up is advisory and is not an antivirus; it never deletes files.
+- Run the network scan only on networks you own or are allowed to test.
+- The Security Check-Up is advisory and is not an antivirus.
 - Back up important data and create a System Restore point before changing system settings.
 - Software updated through winget is licensed to you by its own publisher.
 
-## Safety notes
+## Contributing
 
-- Cleanup is allowlist-based; arbitrary user folders are never scanned or deleted.
-- Adobe caches are skipped whenever a supported Adobe process is active.
-- Power-plan changes are reversible.
-- Memory trimming may make background apps reload some data; Windows automatically gives memory back when needed.
-- Audio Balance changes the per-channel level exposed by the active Windows output. Begin at a comfortable volume and avoid sudden increases; Mantis is not a medical or hearing-calibration device.
-- Ghost Overlay only changes standard Windows styles on the selected browser/media-player window. It does not inject into, inspect, hook, or modify a game process. No utility can guarantee compatibility with every third-party anti-cheat, so use the feature only with supported video windows and release it if a game objects to overlays.
+Bug reports, ideas and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first; the short version is: C# 5, no NuGet packages, nothing that changes a setting without asking.
 
-## License and publisher
+## License
 
-Copyright © 2026 **kemalselimkoc**. Original source code is available under the
-[MIT License](LICENSE). See [EULA.txt](EULA.txt) for the end-user notice and
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for platform attribution.
+Copyright © 2026 **kemalselimkoc**. Source code under the [MIT License](LICENSE). End-user terms in [EULA.txt](EULA.txt), attributions in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
-The software is provided "as is", without warranty of any kind. Project Mantis
-is an independent project and is not affiliated with, endorsed by or sponsored
-by Microsoft. Windows, Microsoft Defender and related names are trademarks of
-the Microsoft group of companies.
+The software is provided "as is", without warranty of any kind. Project Mantis is an independent project and is not affiliated with, endorsed by or sponsored by Microsoft. Windows, Microsoft Defender and related names are trademarks of the Microsoft group of companies.
 
-- GitHub: https://github.com/kemalselimkoc
-- Support: https://buymeacoffee.com/kemalselimkoc
+---
+
+<sub>🇹🇷 Mantis Türkçe arayüzle gelir. Hata bildirimi ve öneriler Türkçe de yazılabilir.</sub>
