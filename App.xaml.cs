@@ -36,6 +36,7 @@ namespace ProjectMantis
                         if (arg.StartsWith("--terms-snapshot=", StringComparison.OrdinalIgnoreCase)) { Terms.Snapshot(arg.Substring(17), LanguageOverride != "en"); Environment.Exit(0); }
                         if (arg == "--self-test" || arg.StartsWith("--snapshot=", StringComparison.OrdinalIgnoreCase) || arg.StartsWith("--run=", StringComparison.OrdinalIgnoreCase)) DevAutomation = true;
                     }
+                if (RunSetupModes(app, args)) Environment.Exit(0);
                 if (!DevAutomation && !Terms.EnsureAccepted()) { Log("Terms declined"); Environment.Exit(0); }
                 MainWindow window = new MainWindow();
                 Log("MainWindow constructed");
@@ -74,6 +75,27 @@ namespace ProjectMantis
                 catch { }
                 Environment.Exit(1);
             }
+        }
+
+        // Setup (exe named *Setup*.exe or --install), uninstall (--uninstall) and the setup snapshot dev aid
+        // run their own window and exit; they never start the main app or take the single-instance mutex.
+        private static bool RunSetupModes(App app, string[] args)
+        {
+            string saved = System.IO.File.Exists(System.IO.Path.Combine(Settings.DataDir, "settings.ini")) ? Settings.Load().Language : null;
+            bool tr = (LanguageOverride ?? saved ?? (System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "tr" ? "tr" : "en")) == "tr";
+            string snapshot = null; int step = 0;
+            foreach (string arg in args ?? new string[0])
+            {
+                if (arg.StartsWith("--setup-snapshot=", StringComparison.OrdinalIgnoreCase)) snapshot = arg.Substring(17);
+                else if (arg.StartsWith("--setup-step=", StringComparison.OrdinalIgnoreCase)) int.TryParse(arg.Substring(13), out step);
+            }
+            bool uninstall = Installer.IsUninstallRun(args), setup = !uninstall && Installer.IsSetupRun(args);
+            if (snapshot == null && !uninstall && !setup) return false;
+            app.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            if (snapshot != null) SetupWizard.Snapshot(snapshot, tr, step);
+            else if (uninstall) UninstallUi.Run(tr);
+            else new SetupWizard(tr).ShowDialog();
+            return true;
         }
 
         protected override void OnStartup(StartupEventArgs e)

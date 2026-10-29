@@ -55,7 +55,8 @@ $exeName = "ProjectMantis-v$version.exe"
 $skip = @('obj', 'dist', 'release') | ForEach-Object { Join-Path $project $_ }
 $sources = Get-ChildItem $project -Recurse -Filter '*.cs' | Where-Object { $f = $_.FullName; -not ($skip | Where-Object { $f.StartsWith($_ + '\') }) } | ForEach-Object { $_.FullName } | Sort-Object
 
-& $csc /nologo /target:winexe /platform:anycpu /optimize+ /win32icon:"$project\assets\mantis.ico" /out:"$out\$exeName" @refArgs @sources
+# The logo is embedded too, so the single setup exe can show it and write it next to the installed app.
+& $csc /nologo /target:winexe /platform:anycpu /optimize+ /win32icon:"$project\assets\mantis.ico" "/resource:$png,ProjectMantis.logo.png" /out:"$out\$exeName" @refArgs @sources
 if ($LASTEXITCODE -ne 0) { throw "Build failed with exit code $LASTEXITCODE" }
 
 Copy-Item "$project\README.md" "$out\README.txt" -Force

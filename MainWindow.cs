@@ -506,7 +506,7 @@ namespace ProjectMantis
             try
             {
                 string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "assets", "mantis-logo.png");
-                if (!File.Exists(path)) return null;
+                if (!File.Exists(path)) return SetupWizard.Logo();   // portable exe without assets\: use the embedded copy
                 BitmapImage image = new BitmapImage(); image.BeginInit(); image.CacheOption = BitmapCacheOption.OnLoad; image.UriSource = new Uri(path, UriKind.Absolute); image.EndInit(); image.Freeze(); return image;
             }
             catch { return null; }

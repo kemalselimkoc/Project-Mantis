@@ -112,7 +112,7 @@ namespace ProjectMantis
             return b;
         }
 
-        private const string TextTr =
+        internal const string TextTr =
             "PROJECT MANTIS SON KULLANICI LİSANS SÖZLEŞMESİ (Sürüm 2)\n" +
             "Telif hakkı (c) 2026 kemalselimkoc\n\n" +
             "Bu yazılımı kurarak, çalıştırarak veya kullanarak aşağıdaki koşulları kabul etmiş olursunuz. Kabul etmiyorsanız \"Reddet ve çık\" seçeneğini kullanın ve yazılımı silin.\n\n" +
@@ -144,7 +144,7 @@ namespace ProjectMantis
             "İletişim: kemalselimkoc@gmail.com\n" +
             "Proje: https://github.com/kemalselimkoc/Project-Mantis";
 
-        private const string TextEn =
+        internal const string TextEn =
             "PROJECT MANTIS END USER LICENSE AGREEMENT (Version 2)\n" +
             "Copyright (c) 2026 kemalselimkoc\n\n" +
             "By installing, running or using this software you agree to the terms below. If you do not agree, choose \"Decline and exit\" and delete the software.\n\n" +

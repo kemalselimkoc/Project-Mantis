@@ -316,6 +316,8 @@ namespace ProjectMantis
             else if (kind == "TWEAK") { color = Theme.SectionTools; text = (language == "tr" ? "Tweak · " : "Tweak · ") + field("id") + (field("ok") != "True" ? (language == "tr" ? " (uygulanamadı)" : " (not applied)") : field("applied") == "True" ? (language == "tr" ? " uygulandı" : " applied") : (language == "tr" ? " varsayılana döndü" : " reset")); }
             else if (kind == "HOSTS") { color = Theme.SectionTools; text = language == "tr" ? "Hosts dosyası kaydedildi (yedekli)" : "Hosts file saved (backed up)"; }
             else if (kind == "POWER") { color = Theme.SectionTools; text = (language == "tr" ? "Güç · " : "Power · ") + details.Split(' ')[0]; }
+            else if (kind == "INSTALL") { color = Theme.AccentPrimary; text = (language == "tr" ? "Kuruldu · v" : "Installed · v") + field("version"); }
+            else if (kind == "UNINSTALL") { color = Theme.TextMuted; text = (language == "tr" ? "Kaldırıldı · v" : "Uninstalled · v") + field("version"); }
             else { color = Theme.TextMuted; text = kind; }
             Grid row = new Grid { Margin = new Thickness(0, 0, 0, Theme.S2 + 2) };
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); row.ColumnDefinitions.Add(new ColumnDefinition()); row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });

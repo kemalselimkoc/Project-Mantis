@@ -8,10 +8,11 @@
 
 ## Install for regular users
 
-1. Download `Project-Mantis-v1.3.1-win64.zip` from the latest GitHub Release.
-2. Extract the complete ZIP to a folder.
-3. Double-click **Install Project Mantis.bat**.
-4. Mantis creates a desktop shortcut, optionally launches with Windows, and opens automatically.
+1. Download `ProjectMantis-Setup-v1.3.1.exe` from the latest GitHub Release.
+2. Run it: read and accept the license agreement, pick the install folder and shortcuts, press **Install**.
+3. Setup is per-user (no administrator rights) and Mantis appears under **Settings → Apps**, where it can be uninstalled.
+
+Prefer not to install? Download `Project-Mantis-v1.3.1-portable.zip`, extract it and run `ProjectMantis.exe`.
 
 No Python, Node.js, .NET SDK, or separate runtime download is required on a
 current Windows 10/11 installation. Windows may show a SmartScreen reputation
