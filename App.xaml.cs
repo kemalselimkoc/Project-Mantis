@@ -33,6 +33,7 @@ namespace ProjectMantis
                     foreach (string arg in args)
                     {
                         if (arg == "--lang=en" || arg == "--lang=tr") LanguageOverride = arg.Substring(7);
+                        if (arg.StartsWith("--terms-snapshot=", StringComparison.OrdinalIgnoreCase)) { Terms.Snapshot(arg.Substring(17), LanguageOverride != "en"); Environment.Exit(0); }
                         if (arg == "--self-test" || arg.StartsWith("--snapshot=", StringComparison.OrdinalIgnoreCase) || arg.StartsWith("--run=", StringComparison.OrdinalIgnoreCase)) DevAutomation = true;
                     }
                 if (!DevAutomation && !Terms.EnsureAccepted()) { Log("Terms declined"); Environment.Exit(0); }
