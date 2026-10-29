@@ -101,5 +101,5 @@ jobs:
           $lines = $files | ForEach-Object { '| `' + $_.Name + '` | `' + (Get-FileHash $_.FullName -Algorithm SHA256).Hash + '` |' }
           $note = if ($env:SIGNED -eq 'true') { 'The exe is code-signed.' } else { 'This build is not code-signed yet; Windows SmartScreen may warn. Compare the SHA-256 below before running.' }
           $body = "See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/$tag/CHANGELOG.md) for what changed.`n`n$note`n`n| File | SHA-256 |`n| --- | --- |`n" + ($lines -join "`n")
-          Set-Content notes.md $body -Encoding UTF8
+          [IO.File]::WriteAllText("$PWD\notes.md", $body, (New-Object Text.UTF8Encoding($false)))
           gh release create $tag $files.FullName --title "Project Mantis $tag" --notes-file notes.md

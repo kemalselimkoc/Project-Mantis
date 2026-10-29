@@ -53,6 +53,7 @@ namespace ProjectMantis
             {
                 ShowSecurity();
                 HashSet<string> wanted = new HashSet<string>(ids.Split(','), StringComparer.OrdinalIgnoreCase);
+                wanted.Remove("network");   // a command line must never start a network scan without the consent dialog
                 await RunModules(securityModules.Where(m => wanted.Contains(m.Id)).ToList());
             };
         }

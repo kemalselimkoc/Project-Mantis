@@ -86,14 +86,17 @@ namespace ProjectMantis
             string full;
             try { full = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar); } catch { return; }
             if (full.Length < 8 || full == Path.GetPathRoot(full)) return;
-            IEnumerable<string> files;
-            try { files = Directory.EnumerateFiles(full, "*", SearchOption.AllDirectories).ToArray(); }
-            catch { files = SafeFiles(full); }
+            if (IsReparsePoint(full)) return;
+            List<string> dirs;
+            IEnumerable<string> files = SafeFiles(full, out dirs);
             foreach (string file in files)
             {
                 try
                 {
-                    FileInfo info = new FileInfo(file); long size = info.Exists ? info.Length : 0;
+                    FileInfo info = new FileInfo(file);
+                    // A file symlink planted in a temp folder could point anywhere; never delete through one.
+                    if (!info.Exists || (info.Attributes & FileAttributes.ReparsePoint) != 0) { result.Skipped++; continue; }
+                    long size = info.Length;
                     // Count a file only once it is really gone, so "space reclaimed" never includes skipped files.
                     if (!scanOnly) { info.IsReadOnly = false; info.Delete(); }
                     result.Files++; result.Bytes += size;
@@ -102,25 +105,38 @@ namespace ProjectMantis
             }
             if (!scanOnly)
             {
-                try
-                {
-                    foreach (string dir in Directory.EnumerateDirectories(full, "*", SearchOption.AllDirectories).OrderByDescending(x => x.Length))
-                        try { Directory.Delete(dir, false); } catch { }
-                }
-                catch { }
+                foreach (string dir in dirs.OrderByDescending(x => x.Length))
+                    try { if (!IsReparsePoint(dir)) Directory.Delete(dir, false); } catch { }
             }
         }
 
-        private static IEnumerable<string> SafeFiles(string root)
+        // Walks the tree without entering junctions or directory symlinks. Temp folders are writable by
+        // ordinary users, so when Mantis runs as administrator a planted link must never steer the
+        // cleaner into System32 or another user's profile.
+        private static IEnumerable<string> SafeFiles(string root, out List<string> dirs)
         {
-            List<string> found = new List<string>(); Queue<string> queue = new Queue<string>(); queue.Enqueue(root);
+            List<string> found = new List<string>(); dirs = new List<string>();
+            Queue<string> queue = new Queue<string>(); queue.Enqueue(root);
             while (queue.Count > 0)
             {
                 string dir = queue.Dequeue();
                 try { found.AddRange(Directory.GetFiles(dir)); } catch { }
-                try { foreach (string sub in Directory.GetDirectories(dir)) queue.Enqueue(sub); } catch { }
+                try
+                {
+                    foreach (string sub in Directory.GetDirectories(dir))
+                    {
+                        if (IsReparsePoint(sub)) continue;
+                        dirs.Add(sub); queue.Enqueue(sub);
+                    }
+                }
+                catch { }
             }
             return found;
+        }
+
+        private static bool IsReparsePoint(string path)
+        {
+            try { return (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0; } catch { return true; }
         }
 
         private static void AppendLog(string line)

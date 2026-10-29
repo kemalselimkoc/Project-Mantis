@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Security
+- Cleaner: never follows junctions or symbolic links. Before this fix, a link planted in a temp folder could make an elevated Mantis delete files outside that folder.
+- Links and files open only for `https`, Windows settings pages and Mantis' own reports and logs. As administrator, they now open without admin rights.
+- Check-Up HTML reports carry a Content-Security-Policy that blocks scripts.
+- A command line can no longer start the local network scan without the consent dialog.
+- New SECURITY.md and CODE_SIGNING_POLICY.md.
+
+### Fixes
+- The build stores the logo as a stream resource, which fixes a rare start-up crash.
+
 ## 1.4.0 — 2026-10-29
 
 ### Security Check-Up (new)

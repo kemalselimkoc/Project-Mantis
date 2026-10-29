@@ -75,7 +75,10 @@ Allowlist-based cleanup of temp folders, DirectX shader cache, crash reports and
 
 Prefer not to install? Download `Project-Mantis-v1.4.0-portable.zip`, extract it and run `ProjectMantis.exe`.
 
-The build is not code-signed yet, so Windows SmartScreen may show a warning. Compare the file's SHA-256 with the value on the release page (`Get-FileHash .\ProjectMantis-Setup-v1.4.0.exe`). Signing is planned; see [SIGNING.md](SIGNING.md).
+The build is not code-signed yet, so Windows SmartScreen may show a warning. Compare the file's SHA-256 with the value on the release page (`Get-FileHash .\ProjectMantis-Setup-v1.4.0.exe`). Signing is planned; see [SIGNING.md](SIGNING.md) and the [code signing policy](CODE_SIGNING_POLICY.md).
+
+> [!WARNING]
+> **Known false positive (v1.4.0).** Microsoft Defender currently flags the v1.4.0 download as `Trojan:Win32/Sabsik.EN.A!ml`. The `!ml` suffix means a machine-learning guess about a new, unsigned file, not a matched malware signature. The file is built in public by GitHub Actions from this source code. We have reported it to Microsoft as a false positive; it clears once Defender's definitions update. If you prefer not to wait, build from source (below) or check back in a few days. Please do not turn off your antivirus for this.
 
 Mantis starts in standard-user mode. Checks and fixes that need administrator rights show a **Restart as administrator** button.
 

@@ -43,7 +43,8 @@ try {
     $encoder.Frames.Add($frame)
     $encoder.Save($imageStream)
     $imageStream.Position = 0
-    $writer.AddResource('assets/mantis-logo.png', $imageStream.ToArray())
+    # WPF reads pack resources with GetStream, so the logo must be stored as a stream, not a byte array.
+    $writer.AddResource('assets/mantis-logo.png', [System.IO.Stream]$imageStream)
     $writer.Close()
 } finally { $stream.Dispose() }
 

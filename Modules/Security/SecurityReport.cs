@@ -161,7 +161,7 @@ namespace ProjectMantis
             string ring = score >= 90 ? "#75FF9B" : score >= 75 ? "#9BDB2E" : score >= 50 ? "#FFD166" : "#FF7A6B";
             double circumference = 2 * Math.PI * 54, dash = circumference * score / 100.0;
             StringBuilder sb = new StringBuilder();
-            sb.Append("<!doctype html><html lang=\"").Append(tr ? "tr" : "en").Append("\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">")
+            sb.Append("<!doctype html><html lang=\"").Append(tr ? "tr" : "en").Append("\"><head><meta charset=\"utf-8\"><meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'; img-src data:\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">")
               .Append("<title>Mantis Check-Up · ").Append(score).Append("/100</title><style>")
               .Append(":root{--bg:#050706;--panel:#0f1412;--line:rgba(255,255,255,.09);--text:#edf2ea;--muted:#8c978e;--faint:#58625a;--lime:#b7f34a;--high:#ff7a6b;--med:#ffd166;--low:#75ff9b;--info:#67c6ff;--ok:#75ff9b}")
               .Append("*{box-sizing:border-box}body{margin:0;background:var(--bg);background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:32px 32px;color:var(--text);font:14px/1.55 'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif;padding:40px 16px}")

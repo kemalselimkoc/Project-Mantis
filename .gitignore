@@ -3,3 +3,4 @@ obj/
 release/
 *.user
 *.suo
+_private/

@@ -699,9 +699,32 @@ namespace ProjectMantis
             try { Process.Start(new ProcessStartInfo(Process.GetCurrentProcess().MainModule.FileName, "--elevated --page=" + currentPage) { Verb = "runas", UseShellExecute = true }); allowExit = true; Close(); Application.Current.Shutdown(); } catch { }
         }
 
+        // Opens web links, Windows settings pages and Mantis' own files only. When Mantis runs as administrator
+        // the target is handed to Explorer so the browser or viewer starts without admin rights.
         private void OpenUrl(string url)
         {
-            try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); } catch { }
+            if (!IsOpenableTarget(url)) return;
+            try
+            {
+                if (IsAdmin()) Process.Start(new ProcessStartInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe"), PowerTools.QuoteArg(url)) { UseShellExecute = false });
+                else Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            }
+            catch { }
+        }
+
+        internal static bool IsOpenableTarget(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url)) return false;
+            if (url.StartsWith("https://", StringComparison.OrdinalIgnoreCase) || url.StartsWith("ms-settings:", StringComparison.OrdinalIgnoreCase) || url.StartsWith("ms-windows-store://", StringComparison.OrdinalIgnoreCase)) return true;
+            try
+            {
+                string full = Path.GetFullPath(url), data = Path.GetFullPath(Settings.DataDir).TrimEnd('\\') + "\\";
+                if (!full.StartsWith(data, StringComparison.OrdinalIgnoreCase) && !string.Equals(full + "\\", data, StringComparison.OrdinalIgnoreCase)) return false;
+                if (Directory.Exists(full)) return true;
+                string ext = Path.GetExtension(full).ToLowerInvariant();
+                return File.Exists(full) && (ext == ".html" || ext == ".txt" || ext == ".log");
+            }
+            catch { return false; }
         }
 
         private string CloseBehaviorLabel()
@@ -823,7 +846,7 @@ namespace ProjectMantis
             try
             {
                 if (!File.Exists(path)) { Directory.CreateDirectory(Settings.DataDir); File.WriteAllText(path, language == "tr" ? "Henüz işlem kaydı yok." : "No operations recorded yet."); }
-                Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
+                OpenUrl(path);
             }
             catch { }
         }
