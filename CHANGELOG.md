@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.4.1 — 2026-10-29
 
 ### Security
 - Cleaner: never follows junctions or symbolic links. Before this fix, a link planted in a temp folder could make an elevated Mantis delete files outside that folder.

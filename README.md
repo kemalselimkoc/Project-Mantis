@@ -67,18 +67,18 @@ Allowlist-based cleanup of temp folders, DirectX shader cache, crash reports and
 
 ## Install
 
-1. Download **`ProjectMantis-Setup-v1.4.0.exe`** from the [latest release](https://github.com/kemalselimkoc/Project-Mantis/releases/latest).
+1. Download **`ProjectMantis-Setup-v1.4.1.exe`** from the [latest release](https://github.com/kemalselimkoc/Project-Mantis/releases/latest).
 2. Run it, accept the license agreement, pick the folder and shortcuts, press **Install**.
 3. Setup is per-user (no administrator rights). Mantis appears in **Settings → Apps**, where it can be uninstalled.
 
 <img src="docs/images/setup.png" alt="Setup wizard" width="640">
 
-Prefer not to install? Download `Project-Mantis-v1.4.0-portable.zip`, extract it and run `ProjectMantis.exe`.
+Prefer not to install? Download `Project-Mantis-v1.4.1-portable.zip`, extract it and run `ProjectMantis.exe`.
 
-The build is not code-signed yet, so Windows SmartScreen may show a warning. Compare the file's SHA-256 with the value on the release page (`Get-FileHash .\ProjectMantis-Setup-v1.4.0.exe`). Signing is planned; see [SIGNING.md](SIGNING.md) and the [code signing policy](CODE_SIGNING_POLICY.md).
+The build is not code-signed yet, so Windows SmartScreen may show a warning. Compare the file's SHA-256 with the value on the release page (`Get-FileHash .\ProjectMantis-Setup-v1.4.1.exe`). Signing is planned; see [SIGNING.md](SIGNING.md) and the [code signing policy](CODE_SIGNING_POLICY.md).
 
 > [!WARNING]
-> **Known false positive (v1.4.0).** Microsoft Defender currently flags the v1.4.0 download as `Trojan:Win32/Sabsik.EN.A!ml`. The `!ml` suffix means a machine-learning guess about a new, unsigned file, not a matched malware signature. The file is built in public by GitHub Actions from this source code. We have reported it to Microsoft as a false positive; it clears once Defender's definitions update. If you prefer not to wait, build from source (below) or check back in a few days. Please do not turn off your antivirus for this.
+> **Possible false positive.** Microsoft Defender has flagged the unsigned v1.4.0 download as `Trojan:Win32/Sabsik.EN.A!ml`. The `!ml` suffix means a machine-learning guess about a new, unsigned file, not a matched malware signature. The file is built in public by GitHub Actions from this source code. We have reported it to Microsoft as a false positive; it clears once Defender's definitions update. If you prefer not to wait, build from source (below) or check back in a few days. Please do not turn off your antivirus for this.
 
 Mantis starts in standard-user mode. Checks and fixes that need administrator rights show a **Restart as administrator** button.
 
